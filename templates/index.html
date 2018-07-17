@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Colour - Analysis</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <style>
+        body,
+        html {
+            background-color: #111111;
+            height: 100%;
+            width: 100%;
+            font-family: Monospace;
+            font-size: 1.0em;
+            margin: 0px;
+        }
+
+        #info {
+            color: #9C27B0;
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            padding: 1em;
+            z-index: 65535;
+        }
+
+        a {
+            color: #F44336;
+        }
+
+        #views {
+            box-sizing: border-box;
+            border: 8px solid #222222;
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            height: 100%;
+            width: 100%;
+        }
+
+        #gamutView1,
+        #imageView1 {
+            background-color: #222222;
+        }
+
+        /* Splitter */
+
+        .split {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .gutter {
+            background-color: #222222;
+            background-repeat: no-repeat;
+            background-position: 50%;
+        }
+
+        .gutter.gutter-horizontal {
+            cursor: ew-resize;
+        }
+
+        .gutter.gutter-vertical {
+            cursor: ns-resize;
+        }
+
+        .split.split-horizontal,
+        .gutter.gutter-horizontal {
+            height: 100%;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div id="info">
+        <a href="https://www.colour-science.org" target="_blank">colour-science.org</a> - Colour - Analysis
+    </div> -->
+
+    <div id="views">
+        <div id="gamutView1" class="split split-horizontal">
+        </div>
+        <div id="imageView1" class="split split-horizontal">
+        </div>
+    </div>
+
+    <script src="https://cdn.rawgit.com/nathancahill/Split.js/master/split.min.js"></script>
+    <script>
+        Split(['#gamutView1', '#imageView1'], {
+            sizes: [50, 50],
+        });
+    </script>
+
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/master/build/three.min.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/Detector.js"></script>
+    <script src="https://cdn.rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
+    <script type="module">
+        import { GamutView } from "{{ url_for('static', filename = 'js/views/gamutView.js') }}";
+        import { ImageView } from "{{ url_for('static', filename = 'js/views/imageView.js') }}";
+        import { fetchJSON } from "{{ url_for('static', filename = 'js/common.js') }}";
+        import {
+            Controls,
+            updateDropdown
+        } from "{{ url_for('static', filename = 'js/gui.js') }}";
+
+        if (!Detector.webgl) Detector.addGetWebGLMessage();
+
+        var gamutView1 = new GamutView(document.getElementById('gamutView1'));
+        gamutView1.workingColourspace = 'sRGB';
+        gamutView1.compareColourspace = 'ACEScg';
+        gamutView1.addViewAxesVisual();
+        gamutView1.addWorkingColourspaceVisual();
+        gamutView1.addCompareColourspaceVisual();
+        gamutView1.addSpectralLocusVisual();
+        gamutView1.addImageScatterVisual();
+        gamutView1.animate();
+
+        var imageView1 = new ImageView(document.getElementById('imageView1'), {});
+        imageView1.addImageVisual('SonyF35-StillLife.sRGB.exr');
+        imageView1.animate();
+
+        var controls = new Controls();
+        var gui = new dat.GUI({ width: 320 });
+        var colourspaceModelController = gui
+            .add(controls, 'colourspaceModel', [])
+            .name('Colourspace Model');
+
+        var workingColourspaceFolder = gui.addFolder('Working Colourspace');
+        var workingColourspaceController = workingColourspaceFolder
+            .add(controls, 'workingColourspace', [])
+            .name('Colourspace');
+        var workingColourspaceVisibility = workingColourspaceFolder
+            .add(controls, 'workingColourspaceVisible')
+            .name('Visible')
+            .onChange(function (value) {
+                gamutView1.workingColourspaceVisual.visible = value;
+            });
+
+        var compareColourspaceFolder = gui.addFolder('Compare Colourspace');
+        var compareColourspaceController = compareColourspaceFolder
+            .add(controls, 'compareColourspace', [])
+            .name('Colourspace');
+        var compareColourspaceVisibility = compareColourspaceFolder
+            .add(controls, 'compareColourspaceVisible')
+            .name('Visible')
+            .onChange(function (value) {
+                gamutView1.compareColourspaceVisual.visible = value;
+            });
+
+        var imageScatterFolder = gui.addFolder('Image Scatter');
+        imageScatterFolder
+            .add(controls, 'imageScatterSaturate')
+            .name('Saturate')
+            .onChange(function (value) {
+                gamutView1.imageScatterVisual.saturate = value;
+            });
+        imageScatterFolder
+            .add(controls, 'imageScatterSize', 0.005, 0.1)
+            .name('Point Size')
+            .onChange(function (value) {
+                gamutView1.imageScatterVisual.pointSize = value;
+            });
+
+        var updateColourspaceModelDropdown = updateDropdown.bind(
+            null,
+            controls,
+            'colourspaceModel',
+            colourspaceModelController,
+            gamutView1.colourspaceModel
+        );
+        fetchJSON('/colourspace-models', updateColourspaceModelDropdown);
+        colourspaceModelController.onChange(function (value) {
+            gamutView1.colourspaceModel = value;
+        });
+
+        var updateWorkingColourspaceDropdown = updateDropdown.bind(
+            null,
+            controls,
+            'workingColourspace',
+            workingColourspaceController,
+            gamutView1.workingColourspace
+        );
+        fetchJSON('/RGB-colourspaces', updateWorkingColourspaceDropdown);
+        workingColourspaceController.onChange(function (value) {
+            gamutView1.workingColourspace = value;
+        });
+
+        var updateCompareColourspaceDropdown = updateDropdown.bind(
+            null,
+            controls,
+            'compareColourspace',
+            compareColourspaceController,
+            gamutView1.compareColourspace
+        );
+        fetchJSON('/RGB-colourspaces', updateCompareColourspaceDropdown);
+        compareColourspaceController.onChange(function (value) {
+            gamutView1.compareColourspace = value;
+        });
+    </script>
+
+</body>
+
+</html>
