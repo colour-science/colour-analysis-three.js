@@ -40,9 +40,11 @@ class Visual {
 
     set visible(value) {
         this._visible = value;
-        if (this._visual != undefined) {
-            this._visual.visible = value;
-        }
+        Object.keys(this._cache).forEach(
+            function(key) {
+                this._cache[key].visible = value;
+            }.bind(this)
+        );
     }
 
     get cache() {

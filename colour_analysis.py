@@ -28,7 +28,7 @@ COLOURSPACE_MODELS_LABELS = {
 }
 
 
-def common_colourspace_model_axis_reorder(a, model=None):
+def colourspace_model_axis_reorder(a, model=None):
     i, j, k = tsplit(a)
     if model in ('CIE XYZ', ):
         a = tstack((k, j, i))
@@ -37,6 +37,13 @@ def common_colourspace_model_axis_reorder(a, model=None):
     elif model in ('CIE Lab', 'CIE LCHab', 'CIE Luv', 'CIE LCHuv', 'IPT',
                    'Hunter Lab', 'Hunter Rdab'):
         a = tstack((k, i, j))
+
+    return a
+
+
+def colourspace_model_faces_reorder(a, model=None):
+    if model in ('CIE XYZ', ):
+        a = a[::-1]
 
     return a
 
@@ -316,13 +323,14 @@ def RGB_colourspace_volume_visual(colourspace='ITU-R BT.709',
         depth_segments=segments)
 
     vertices = cube[0]['position'] + 0.5
-    faces = cube[1]
+    faces = colourspace_model_faces_reorder(
+        np.reshape(cube[1], (-1, 1)), colourspace_model)
     # outline = cube[2]
     RGB = cube[0]['colour'] if uniform_colour is None else uniform_colour
 
     XYZ = RGB_to_XYZ(vertices, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
-    vertices = common_colourspace_model_axis_reorder(
+    vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
                                  colourspace_model), colourspace_model)
     vertices[np.isnan(vertices)] = 0
@@ -343,8 +351,7 @@ def RGB_colourspace_volume_visual(colourspace='ITU-R BT.709',
     # mask = np.full(
     #     faces.shape[0], face_mask(face_vertex_colours=True)).reshape(-1, 1)
 
-    return buffer_geometry(
-        position=vertices, color=RGB, index=np.reshape(faces, (-1, 1)))
+    return buffer_geometry(position=vertices, color=RGB, index=faces)
 
 
 def spectral_locus_visual(colourspace='ITU-R BT.709',
@@ -360,7 +367,7 @@ def spectral_locus_visual(colourspace='ITU-R BT.709',
 
     XYZ = np.vstack((XYZ, XYZ[0, ...]))
 
-    vertices = common_colourspace_model_axis_reorder(
+    vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
                                  colourspace_model), colourspace_model)
     vertices[np.isnan(vertices)] = 0
@@ -392,7 +399,7 @@ def RGB_image_scatter_visual(path,
 
     XYZ = RGB_to_XYZ(RGB, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
-    vertices = common_colourspace_model_axis_reorder(
+    vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
                                  colourspace_model), colourspace_model)
     vertices[np.isnan(vertices)] = 0

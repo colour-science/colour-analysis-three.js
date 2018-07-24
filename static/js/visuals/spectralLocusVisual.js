@@ -60,7 +60,6 @@ class SpectralLocusVisual extends Visual {
             transparent: this._uniformOpacity != 1.0,
             opacity: this._uniformOpacity
         });
-        material.depthWrite = this._uniformOpacity != 1.0 ? false : true;
 
         var visual = new THREE.Line(geometry, material);
         visual.name = this.name;

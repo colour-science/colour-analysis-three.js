@@ -73,9 +73,9 @@ class ImageScatterVisual extends Visual {
 
     set pointSize(value) {
         this._pointSize = value;
-        Object.keys(this._cache).forEach(
+        Object.keys(this.cache).forEach(
             function(key) {
-                this._cache[key].material.size = value;
+                this.cache[key].material.size = value;
             }.bind(this)
         );
     }
@@ -106,7 +106,6 @@ class ImageScatterVisual extends Visual {
             opacity: this._uniformOpacity,
             size: this._pointSize
         });
-        material.depthWrite = this._uniformOpacity != 1.0 ? false : true;
 
         var visual = new THREE.Points(geometry, material);
         visual.name = this.name;
