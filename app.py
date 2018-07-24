@@ -12,7 +12,7 @@ from colour_analysis import (RGB_colourspaces, RGB_colourspace_volume_visual,
 
 APP = Flask(__name__)
 
-CACHE = SimpleCache()
+CACHE = SimpleCache(default_timeout=3600)
 
 
 def _null_to_None(data):

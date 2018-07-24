@@ -91,6 +91,9 @@ class GamutView extends PerspectiveView {
     }
 
     set colourspaceModel(value) {
+        if (this._viewAxesVisual != undefined) {
+            this._viewAxesVisual.colourspaceModel = value;
+        }
         if (this._workingColourspaceVisual != undefined) {
             this._workingColourspaceVisual.colourspaceModel = value;
         }

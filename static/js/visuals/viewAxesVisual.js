@@ -55,6 +55,69 @@ class ViewAxesVisual extends Visual {
         visual.name = this.name;
         visual.visible = this.visible;
 
+        var loader = new THREE.FontLoader();
+        loader.load(
+            'https://cdn.rawgit.com/mrdoob/three.js/master/examples/fonts/helvetiker_regular.typeface.json',
+            function(font) {
+                var fontSize = 0.4;
+                var fontDepth = 0.1;
+                var axesLabels = [
+                    {
+                        text: json[this._colourspaceModel][0],
+                        colour: '#FF0000',
+                        position: {
+                            x: -fontSize / 2,
+                            y: -fontSize / 2,
+                            z: 1 + fontSize / 2
+                        }
+                    },
+                    {
+                        text: json[this._colourspaceModel][1],
+                        colour: '#00FF00',
+                        position: {
+                            x: -fontSize / 2,
+                            y: 1 + fontSize / 2,
+                            z: -fontDepth / 2
+                        }
+                    },
+                    {
+                        text: json[this._colourspaceModel][2],
+                        colour: '#0000FF',
+                        position: {
+                            x: 1 + fontSize / 2,
+                            y: -fontSize / 2,
+                            z: -fontDepth / 2
+                        }
+                    }
+                ];
+
+                axesLabels.forEach(
+                    function(label) {
+                        var geometry = new THREE.TextGeometry(label.text, {
+                            font: font,
+                            size: fontSize,
+                            height: fontDepth,
+                            curveSegments: 8
+                        });
+                        var material = new THREE.MeshBasicMaterial({
+                            color: label.colour
+                        });
+
+                        var text = new THREE.Mesh(geometry, material);
+
+                        text.position.set(
+                            label.position.x,
+                            label.position.y,
+                            label.position.z
+                        );
+                        text.name = label.text;
+
+                        visual.add(text);
+                    }.bind(this)
+                );
+            }.bind(this)
+        );
+
         visual.onBeforeRender = function(
             renderer,
             scene,
@@ -65,7 +128,7 @@ class ViewAxesVisual extends Visual {
         ) {
             var distance = this._view.camera.near * 10;
 
-            visual.scale.set(distance / 20, distance / 20, distance / 20);
+            this.visual.scale.set(distance / 20, distance / 20, distance / 20);
 
             var aspectRatio =
                 this._view.container.clientWidth /
@@ -76,9 +139,9 @@ class ViewAxesVisual extends Visual {
             var width = 2 * Math.tan(horizontalFov / 2) * distance;
             var height = 2 * Math.tan(verticalFov / 2) * distance;
 
-            visual.position.set(
-                (-width / 2) * 0.9,
-                (-height / 2) * 0.9,
+            this.visual.position.set(
+                (-width / 2) * 0.85,
+                (-height / 2) * 0.85,
                 -distance
             );
 
@@ -86,7 +149,7 @@ class ViewAxesVisual extends Visual {
                 this._view.camera,
                 this._view.controls
             );
-            visual.rotation.set(rotation.x, rotation.y, 0);
+            this.visual.rotation.set(rotation.x, rotation.y, 0);
         }.bind(this);
 
         return visual;

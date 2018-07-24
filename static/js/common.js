@@ -13,7 +13,8 @@ function fetchJSON(url, callback) {
 
 function removeObjectByName(scene, name) {
     while (scene.getObjectByName(name) != undefined) {
-        scene.remove(scene.getObjectByName(name));
+        var object = scene.getObjectByName(name);
+        object.parent.remove(object);
     }
 }
 
