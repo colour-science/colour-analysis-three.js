@@ -78,12 +78,6 @@ class GamutView extends PerspectiveView {
         this._compareColourspaceVisual = undefined;
         this._spectralLocusVisual = undefined;
         this._imageScatterVisual = undefined;
-
-        var geometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
-        var material = new THREE.MeshBasicMaterial({ color: '#FF0000' });
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.translateY(-1);
-        this.camera.add(mesh);
     }
 
     get colourspaceModel() {
@@ -94,15 +88,19 @@ class GamutView extends PerspectiveView {
         if (this._viewAxesVisual != undefined) {
             this._viewAxesVisual.colourspaceModel = value;
         }
+
         if (this._workingColourspaceVisual != undefined) {
             this._workingColourspaceVisual.colourspaceModel = value;
         }
+
         if (this._compareColourspaceVisual != undefined) {
             this._compareColourspaceVisual.colourspaceModel = value;
         }
+
         if (this._spectralLocusVisual != undefined) {
             this._spectralLocusVisual.colourspaceModel = value;
         }
+
         if (this._imageScatterVisual != undefined) {
             this._imageScatterVisual.colourspaceModel = value;
         }
