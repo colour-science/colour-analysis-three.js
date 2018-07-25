@@ -71,7 +71,7 @@ def RGB_colourspace_volume_visual_response():
     json_data = from_cache(
         _hash(['/RGB-colourspace-volume-visual'] + sorted(args.items())),
         lambda: RGB_colourspace_volume_visual(
-            colourspace=args.get('colourspace', 'ITU-R BT.709'),
+            colourspace=args.get('colourspace', 'sRGB'),
             colourspace_model=args.get('colourspaceModel', 'CIE xyY'),
             segments=int(args.get('segments', 16)),
             uniform_colour=_null_to_None(args.get('uniformColour', None)),
@@ -90,7 +90,7 @@ def spectral_locus_visual_response():
     json_data = from_cache(
         _hash(['/spectral-locus-visual'] + sorted(args.items())),
         lambda: spectral_locus_visual(
-            colourspace=args.get('colourspace', 'ITU-R BT.709'),
+            colourspace=args.get('colourspace', 'sRGB'),
             colourspace_model=args.get('colourspaceModel', 'CIE xyY'),
             uniform_colour=_null_to_None(args.get('uniformColour', None)),
         ))
@@ -109,10 +109,10 @@ def RGB_image_scatter_visual_response(image):
         _hash(['/RGB-image-scatter-visual'] + sorted(args.items())),
         lambda: RGB_image_scatter_visual(
             path=path,
-            colourspace=args.get('colourspace', 'ITU-R BT.709'),
+            colourspace=args.get('colourspace', 'sRGB'),
             colourspace_model=args.get('colourspaceModel', 'CIE xyY'),
             uniform_colour=_null_to_None(args.get('uniformColour', None)),
-            sub_sampling=int(args.get('subSampling', 10)),
+            sub_sampling=int(args.get('subSampling', 25)),
             saturate=_bool_to_bool(args.get('saturate', False)),
         ))
 

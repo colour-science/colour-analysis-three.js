@@ -308,7 +308,7 @@ def create_box(width=1,
     return vertices, faces, outline
 
 
-def RGB_colourspace_volume_visual(colourspace='ITU-R BT.709',
+def RGB_colourspace_volume_visual(colourspace='sRGB',
                                   colourspace_model='CIE xyY',
                                   segments=16,
                                   uniform_colour=None,
@@ -354,7 +354,7 @@ def RGB_colourspace_volume_visual(colourspace='ITU-R BT.709',
     return buffer_geometry(position=vertices, color=RGB, index=faces)
 
 
-def spectral_locus_visual(colourspace='ITU-R BT.709',
+def spectral_locus_visual(colourspace='sRGB',
                           colourspace_model='CIE xyY',
                           cmfs='CIE 1931 2 Degree Standard Observer',
                           uniform_colour=None):
@@ -381,17 +381,16 @@ def spectral_locus_visual(colourspace='ITU-R BT.709',
 
 
 def RGB_image_scatter_visual(path,
-                             colourspace='ITU-R BT.709',
+                             colourspace='sRGB',
                              colourspace_model='CIE xyY',
                              uniform_colour=None,
-                             sub_sampling=10,
+                             sub_sampling=25,
                              saturate=False):
     colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
 
     RGB = read_image(path)
 
-    print(saturate)
     if saturate:
         RGB = np.clip(RGB, 0, 1)
 

@@ -104,16 +104,13 @@
         import { GamutView } from "{{ url_for('static', filename = 'js/views/gamutView.js') }}";
         import { ImageView } from "{{ url_for('static', filename = 'js/views/imageView.js') }}";
         import { fetchJSON } from "{{ url_for('static', filename = 'js/common.js') }}";
-        import {
-            Controls,
-            updateDropdown
-        } from "{{ url_for('static', filename = 'js/gui.js') }}";
+        import { updateDropdown } from "{{ url_for('static', filename = 'js/gui.js') }}";
 
         if (!Detector.webgl) Detector.addGetWebGLMessage();
 
         var gamutView1 = new GamutView(document.getElementById('gamutView1'));
         gamutView1.workingColourspace = 'sRGB';
-        gamutView1.compareColourspace = 'ACEScg';
+        gamutView1.compareColourspace = 'DCI-P3';
         gamutView1.addViewAxesVisual();
         gamutView1.addWorkingColourspaceVisual();
         gamutView1.addCompareColourspaceVisual();
@@ -125,6 +122,25 @@
         imageView1.addImageVisual('SonyF35-StillLife.sRGB.exr');
         imageView1.animate();
 
+        class Controls {
+            constructor() {
+                this.colourspaceModel = [];
+
+                this.workingColourspace = [];
+                this.workingColourspaceVisualVisible = true;
+                this.workingColourspaceVisualOpacity = 0.75;
+
+                this.compareColourspace = [];
+                this.compareColourspaceVisualVisible = true;
+                this.compareColourspaceVisualOpacity = 0.75;
+
+                this.imageScatterVisualSaturate = false;
+                this.imageScatterVisualVisible = true;
+                this.imageScatterVisualOpacity = 1.0;
+                this.imageScatterVisualSize = 0.01;
+            }
+        }
+
         var controls = new Controls();
         var gui = new dat.GUI({ width: 320 });
         var colourspaceModelController = gui
@@ -135,33 +151,57 @@
         var workingColourspaceController = workingColourspaceFolder
             .add(controls, 'workingColourspace', [])
             .name('Colourspace');
-        var workingColourspaceVisibility = workingColourspaceFolder
-            .add(controls, 'workingColourspaceVisible')
+        workingColourspaceFolder
+            .add(controls, 'workingColourspaceVisualVisible')
             .name('Visible')
             .onChange(function (value) {
                 gamutView1.workingColourspaceVisual.visible = value;
+            });
+        workingColourspaceFolder
+            .add(controls, 'workingColourspaceVisualOpacity', 0, 1)
+            .name('Opacity')
+            .onChange(function (value) {
+                gamutView1.workingColourspaceVisual.uniformOpacity = value;
             });
 
         var compareColourspaceFolder = gui.addFolder('Compare Colourspace');
         var compareColourspaceController = compareColourspaceFolder
             .add(controls, 'compareColourspace', [])
             .name('Colourspace');
-        var compareColourspaceVisibility = compareColourspaceFolder
-            .add(controls, 'compareColourspaceVisible')
+        compareColourspaceFolder
+            .add(controls, 'compareColourspaceVisualVisible')
             .name('Visible')
             .onChange(function (value) {
                 gamutView1.compareColourspaceVisual.visible = value;
             });
+        compareColourspaceFolder
+            .add(controls, 'compareColourspaceVisualOpacity', 0, 1)
+            .name('Opacity')
+            .onChange(function (value) {
+                gamutView1.compareColourspaceVisual.uniformOpacity = value;
+            });
 
         var imageScatterFolder = gui.addFolder('Image Scatter');
         imageScatterFolder
-            .add(controls, 'imageScatterSaturate')
+            .add(controls, 'imageScatterVisualVisible')
+            .name('Visible')
+            .onChange(function (value) {
+                gamutView1.imageScatterVisual.visible = value;
+            });
+        imageScatterFolder
+            .add(controls, 'imageScatterVisualOpacity', 0, 1)
+            .name('Opacity')
+            .onChange(function (value) {
+                gamutView1.imageScatterVisual.uniformOpacity = value;
+            });
+        imageScatterFolder
+            .add(controls, 'imageScatterVisualSaturate')
             .name('Saturate')
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.saturate = value;
             });
         imageScatterFolder
-            .add(controls, 'imageScatterSize', 0.005, 0.1)
+            .add(controls, 'imageScatterVisualSize', 0.005, 0.1)
             .name('Point Size')
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.pointSize = value;

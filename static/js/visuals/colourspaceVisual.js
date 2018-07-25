@@ -55,7 +55,13 @@ class ColourspaceVisual extends Visual {
     }
 
     set uniformOpacity(value) {
-        throw new Error('"uniformOpacity" property is read only!');
+        this._uniformOpacity = value;
+        Object.keys(this.cache).forEach(
+            function(key) {
+                this.cache[key].material.transparent = value != 1.0,
+                this.cache[key].material.opacity = value;
+            }.bind(this)
+        );
     }
 
     get wireframe() {

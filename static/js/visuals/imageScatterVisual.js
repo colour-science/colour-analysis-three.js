@@ -9,9 +9,10 @@ class ImageScatterVisual extends Visual {
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
         this._uniformColour = settings.uniformColour || undefined;
         this._uniformOpacity = settings.uniformOpacity || 0.75;
-        this._subSampling = settings.subSampling || 100;
+        this._subSampling = settings.subSampling || 25;
         this._pointSize = settings.pointSize || 0.01;
         this._saturate = settings.saturate || false;
+        console.log(this._colourspace);
     }
 
     get image() {
@@ -55,7 +56,13 @@ class ImageScatterVisual extends Visual {
     }
 
     set uniformOpacity(value) {
-        throw new Error('"uniformOpacity" property is read only!');
+        this._uniformOpacity = value;
+        Object.keys(this.cache).forEach(
+            function(key) {
+                this.cache[key].material.transparent = value != 1.0,
+                this.cache[key].material.opacity = value;
+            }.bind(this)
+        );
     }
 
     get subSampling() {
@@ -90,6 +97,7 @@ class ImageScatterVisual extends Visual {
     }
 
     route() {
+        console.log(this._colourspace);
         return (
             `/RGB-image-scatter-visual/${this._image}?` +
             `colourspace=${this._colourspace}&` +

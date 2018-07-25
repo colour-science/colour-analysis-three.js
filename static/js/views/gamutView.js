@@ -71,7 +71,7 @@ class GamutView extends PerspectiveView {
         this._colourspaceModel = 'CIE xyY';
 
         this._workingColourspace = 'sRGB';
-        this._compareColourspace = 'ACEScg';
+        this._compareColourspace = 'DCI-P3';
 
         this._viewAxesVisual = undefined;
         this._workingColourspaceVisual = undefined;
@@ -208,7 +208,7 @@ class GamutView extends PerspectiveView {
     addImageScatterVisual(image, settings) {
         this._imageScatterVisual = new ImageScatterVisual(this.scene, {
             ...{
-                colourspace: this._compareColourspace,
+                colourspace: this._workingColourspace,
                 colourspaceModel: this._colourspaceModel
             },
             ...settings

@@ -29,7 +29,7 @@ class ImageView extends OrthographicView {
         this.controls.target = settings.controls.target;
 
         this._workingColourspace = 'sRGB';
-        this._compareColourspace = 'ACEScg';
+        this._compareColourspace = 'DCI-P3';
         this._colourspaceModel = 'CIE xyY';
 
         this._imageVisual = undefined;
