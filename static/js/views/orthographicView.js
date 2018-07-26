@@ -25,7 +25,7 @@ class OrthographicView extends View {
             settings.camera.near,
             settings.camera.far
         );
-        this._camera.name = 'OrthographicCamera';
+        this._camera.name = 'orthographic-camera';
         this._camera.up = settings.camera.up;
 
         this._scene.add(this._camera);

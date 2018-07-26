@@ -111,11 +111,12 @@ class ImageScatterVisual extends Visual {
     create(geometry) {
         var material = new THREE.PointsMaterial({
             vertexColors: THREE.VertexColors,
+            transparent: this._uniformOpacity != 1.0,
             opacity: this._uniformOpacity,
             size: this._pointSize
         });
 
-        var visual = new THREE.Points(geometry, material);
+        var visual = new THREE.ParticleSystem(geometry, material);
         visual.name = this.name;
         visual.visible = this.visible;
 
