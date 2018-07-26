@@ -45,7 +45,6 @@ class SpectralLocusVisual extends Visual {
         this._uniformOpacity = value;
         Object.keys(this.cache).forEach(
             function(key) {
-                this.cache[key].material.transparent = value != 1.0,
                 this.cache[key].material.opacity = value;
             }.bind(this)
         );
@@ -63,7 +62,7 @@ class SpectralLocusVisual extends Visual {
     create(geometry) {
         var material = new THREE.LineBasicMaterial({
             vertexColors: THREE.VertexColors,
-            transparent: this._uniformOpacity != 1.0,
+            transparent: true,
             opacity: this._uniformOpacity
         });
 

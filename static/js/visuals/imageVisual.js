@@ -64,8 +64,12 @@ class ImageVisual extends Visual {
         visual.name = this.name;
         visual.visible = this.visible;
 
-        visual.rotation.x = THREE.Math.degToRad(-90);
-        visual.rotation.z = THREE.Math.degToRad(180);
+        visual.rotation.set(
+            THREE.Math.degToRad(-90),
+            0,
+            THREE.Math.degToRad(180)
+        );
+        visual.scale.set(-1, 1, 1);
 
         return visual;
     }

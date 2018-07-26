@@ -108,6 +108,8 @@
 
         if (!Detector.webgl) Detector.addGetWebGLMessage();
 
+        var image = 'Rose.ProPhoto.jpg';
+
         var gamutView1 = new GamutView(document.getElementById('gamutView1'));
         gamutView1.workingColourspace = 'sRGB';
         gamutView1.compareColourspace = 'DCI-P3';
@@ -116,11 +118,11 @@
         gamutView1.addSpectralLocusVisual();
         gamutView1.addCompareColourspaceVisual();
         gamutView1.addWorkingColourspaceVisual();
-        gamutView1.addImageScatterVisual();
+        gamutView1.addImageScatterVisual({ image: image });
         gamutView1.animate();
 
         var imageView1 = new ImageView(document.getElementById('imageView1'), {});
-        imageView1.addImageVisual('SonyF35-StillLife.sRGB.exr');
+        imageView1.addImageVisual({ image: image });
         imageView1.animate();
 
         class Controls {

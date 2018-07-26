@@ -5,10 +5,12 @@ import numpy as np
 import re
 
 from colour import RGB_COLOURSPACES, RGB_to_XYZ, read_image
-from colour.models import XYZ_to_colourspace_model, XYZ_to_RGB
+from colour.models import (XYZ_to_colourspace_model, XYZ_to_RGB, oetf_reverse_sRGB)
 from colour.plotting import (COLOUR_STYLE_CONSTANTS, filter_cmfs,
                              filter_RGB_colourspaces)
 from colour.utilities import first_item, normalise_maximum, tsplit, tstack
+
+LINEAR_FILE_FORMATS = ('.exr', '.hdr')
 
 DEFAULT_FLOAT_DTYPE = np.float16
 
@@ -390,6 +392,8 @@ def RGB_image_scatter_visual(path,
         filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
 
     RGB = read_image(path)
+    if path.split('.')[-1].lower() not in LINEAR_FILE_FORMATS:
+        RGB = oetf_reverse_sRGB(RGB)
 
     if saturate:
         RGB = np.clip(RGB, 0, 1)
@@ -410,6 +414,8 @@ def RGB_image_scatter_visual(path,
 
 def image_data(path, saturate=False):
     RGB = read_image(path)
+    if path.split('.')[-1].lower() not in LINEAR_FILE_FORMATS:
+        RGB = oetf_reverse_sRGB(RGB)
 
     if saturate:
         RGB = np.clip(RGB, 0, 1)

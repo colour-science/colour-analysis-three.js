@@ -101,10 +101,12 @@ class ColourspaceVisual extends Visual {
     create(geometry) {
         var material = new THREE.MeshBasicMaterial({
             vertexColors: THREE.VertexColors,
-            transparent: this._uniformOpacity != 1.0,
+            transparent: true,
             opacity: this._uniformOpacity,
             wireframe: this._wireframe
         });
+
+        material.depthWrite = this._uniformOpacity != 1.0 ? false : true;
 
         var visual = new THREE.Mesh(geometry, material);
         visual.name = this.name;

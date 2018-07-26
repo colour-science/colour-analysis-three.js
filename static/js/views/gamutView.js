@@ -260,11 +260,12 @@ class GamutView extends PerspectiveView {
         this._workingColourspaceVisual.add();
     }
 
-    addImageScatterVisual(image, settings) {
+    addImageScatterVisual(settings) {
         this._imageScatterVisual = new ImageScatterVisual(
             this._imageScatterVisualGroup,
             {
                 ...{
+                    image: settings.image,
                     colourspace: this._workingColourspace,
                     colourspaceModel: this._colourspaceModel
                 },

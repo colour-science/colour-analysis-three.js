@@ -67,10 +67,11 @@ class ImageView extends OrthographicView {
         this._imageColourspace = value;
     }
 
-    addImageVisual(image, settings) {
+    addImageVisual(settings) {
         this._imageVisual = new ImageVisual(this.scene, {
             ...{
-                colourspace: this._imageColourspace,
+                image: settings.image,
+                colourspace: this._imageColourspace
             },
             ...settings
         });
