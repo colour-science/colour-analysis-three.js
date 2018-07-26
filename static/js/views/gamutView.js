@@ -72,6 +72,7 @@ class GamutView extends PerspectiveView {
 
         this._workingColourspace = 'sRGB';
         this._compareColourspace = 'DCI-P3';
+        this._imageColourspace = 'sRGB';
 
         this._viewAxesVisual = undefined;
         this._workingColourspaceVisual = undefined;
@@ -85,6 +86,8 @@ class GamutView extends PerspectiveView {
     }
 
     set colourspaceModel(value) {
+        this._colourspaceModel = value;
+
         if (this._viewAxesVisual != undefined) {
             this._viewAxesVisual.colourspaceModel = value;
         }
@@ -111,6 +114,8 @@ class GamutView extends PerspectiveView {
     }
 
     set workingColourspace(value) {
+        this._workingColourspace = value;
+
         if (this._workingColourspaceVisual != undefined) {
             this._workingColourspaceVisual.colourspace = value;
         }
@@ -121,8 +126,22 @@ class GamutView extends PerspectiveView {
     }
 
     set compareColourspace(value) {
+        this._compareColourspace = value;
+
         if (this._compareColourspaceVisual != undefined) {
             this._compareColourspaceVisual.colourspace = value;
+        }
+    }
+
+    get imageColourspace() {
+        return this._imageColourspace;
+    }
+
+    set imageColourspace(value) {
+        this._imageColourspace = value;
+
+        if (this._imageScatterVisual != undefined) {
+            this._imageScatterVisual.colourspace = value;
         }
     }
 

@@ -106,6 +106,8 @@ class ColourspaceVisual extends Visual {
             wireframe: this._wireframe
         });
 
+        material.depthWrite = this._uniformOpacity != 1.0 ? false : true;
+
         var visual = new THREE.Mesh(geometry, material);
         visual.name = this.name;
         visual.visible = this.visible;

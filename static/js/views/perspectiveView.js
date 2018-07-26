@@ -22,6 +22,7 @@ class PerspectiveView extends View {
             settings.camera.near,
             settings.camera.far
         );
+        this._camera.name = 'PerspectiveCamera';
         this._camera.up = settings.camera.up;
 
         this._scene.add(this._camera);

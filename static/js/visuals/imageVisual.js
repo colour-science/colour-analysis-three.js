@@ -7,7 +7,6 @@ class ImageVisual extends Visual {
 
         this._image = settings.image || 'SonyF35-StillLife.sRGB.exr';
         this._colourspace = settings.colourspace || 'sRGB';
-        this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
         this._saturate = settings.saturate || false;
     }
 
@@ -26,15 +25,6 @@ class ImageVisual extends Visual {
 
     set colourspace(value) {
         this._colourspace = value;
-        this.add();
-    }
-
-    get colourspaceModel() {
-        return this._colourspaceModel;
-    }
-
-    set colourspaceModel(value) {
-        this._colourspaceModel = value;
         this.add();
     }
 

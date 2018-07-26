@@ -111,6 +111,7 @@
         var gamutView1 = new GamutView(document.getElementById('gamutView1'));
         gamutView1.workingColourspace = 'sRGB';
         gamutView1.compareColourspace = 'DCI-P3';
+        gamutView1.imageColourspace = 'sRGB';
         gamutView1.addViewAxesVisual();
         gamutView1.addWorkingColourspaceVisual();
         gamutView1.addCompareColourspaceVisual();
@@ -134,6 +135,7 @@
                 this.compareColourspaceVisualVisible = true;
                 this.compareColourspaceVisualOpacity = 0.75;
 
+                this.imageColourspace = [];
                 this.imageScatterVisualSaturate = false;
                 this.imageScatterVisualVisible = true;
                 this.imageScatterVisualOpacity = 1.0;
@@ -181,7 +183,10 @@
                 gamutView1.compareColourspaceVisual.uniformOpacity = value;
             });
 
-        var imageScatterFolder = gui.addFolder('Image Scatter');
+        var imageScatterFolder = gui.addFolder('Image & Scatter');
+        var imageColourspaceController = imageScatterFolder
+            .add(controls, 'imageColourspace', [])
+            .name('Colourspace');
         imageScatterFolder
             .add(controls, 'imageScatterVisualVisible')
             .name('Visible')
@@ -241,6 +246,18 @@
         fetchJSON('/RGB-colourspaces', updateCompareColourspaceDropdown);
         compareColourspaceController.onChange(function (value) {
             gamutView1.compareColourspace = value;
+        });
+
+        var updateImageColourspaceDropdown = updateDropdown.bind(
+            null,
+            controls,
+            'imageColourspace',
+            imageColourspaceController,
+            gamutView1.imageColourspace
+        );
+        fetchJSON('/RGB-colourspaces', updateImageColourspaceDropdown);
+        imageColourspaceController.onChange(function (value) {
+            gamutView1.imageColourspace = value;
         });
     </script>
 

@@ -28,18 +28,69 @@ class ImageView extends OrthographicView {
         this.camera.position.copy(settings.camera.position);
         this.controls.target = settings.controls.target;
 
-        this._workingColourspace = 'sRGB';
-        this._compareColourspace = 'DCI-P3';
         this._colourspaceModel = 'CIE xyY';
 
+        this._workingColourspace = 'sRGB';
+        this._compareColourspace = 'DCI-P3';
+        this._imageColourspace = 'sRGB';
+
         this._imageVisual = undefined;
+    }
+
+    get colourspaceModel() {
+        return this._colourspaceModel;
+    }
+
+    set colourspaceModel(value) {
+        if (this._viewAxesVisual != undefined) {
+            this._viewAxesVisual.colourspaceModel = value;
+        }
+
+        if (this._workingColourspaceVisual != undefined) {
+            this._workingColourspaceVisual.colourspaceModel = value;
+        }
+
+        if (this._compareColourspaceVisual != undefined) {
+            this._compareColourspaceVisual.colourspaceModel = value;
+        }
+
+        if (this._spectralLocusVisual != undefined) {
+            this._spectralLocusVisual.colourspaceModel = value;
+        }
+
+        if (this._imageScatterVisual != undefined) {
+            this._imageScatterVisual.colourspaceModel = value;
+        }
+    }
+
+    get workingColourspace() {
+        return this._workingColourspace;
+    }
+
+    set workingColourspace(value) {
+        this._workingColourspace = value;
+    }
+
+    get compareColourspace() {
+        return this._compareColourspace;
+    }
+
+    set compareColourspace(value) {
+        this._compareColourspace = value;
+    }
+
+    get imageColourspace() {
+        return this._imageColourspace;
+    }
+
+    set imageColourspace(value) {
+        this._imageColourspace = value;
     }
 
     addImageVisual(image, settings) {
         this._imageVisual = new ImageVisual(this.scene, {
             ...{
-                colourspace: this._workingColourspace,
-                colourspaceModel: this._colourspaceModel
+                colourspace: this._imageColourspace,
             },
             ...settings
         });
