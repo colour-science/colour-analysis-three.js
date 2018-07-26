@@ -1,8 +1,8 @@
 import { Visual } from './visual.js';
 
 class ImageScatterVisual extends Visual {
-    constructor(scene, settings) {
-        super(scene, { ...settings, ...{ name: 'image-scatter-visual' } });
+    constructor(parent, settings) {
+        super(parent, { ...settings, ...{ name: 'image-scatter-visual' } });
 
         this._image = settings.image || 'SonyF35-StillLife.sRGB.exr';
         this._colourspace = settings.colourspace || 'sRGB';

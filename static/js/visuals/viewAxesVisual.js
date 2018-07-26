@@ -3,7 +3,7 @@ import { fetchJSON, rotateToWorld } from '../common.js';
 
 class ViewAxesVisual extends Visual {
     constructor(view, settings) {
-        super(view.scene, { ...settings, ...{ name: 'view-axes-visual' } });
+        super(view.camera, { ...settings, ...{ name: 'view-axes-visual' } });
 
         this._view = view;
 
@@ -29,18 +29,6 @@ class ViewAxesVisual extends Visual {
 
     route() {
         return `/colourspace-models?colourspaceModel=${this._colourspaceModel}`;
-    }
-
-    add() {
-        var route = this.route();
-
-        if (route in this.cache) {
-            this.visual = this.cache[route];
-
-            this.view.camera.add(this.visual);
-        } else {
-            this.fetch(route);
-        }
     }
 
     create(json) {
@@ -163,7 +151,7 @@ class ViewAxesVisual extends Visual {
 
                 this.cache[route] = this.visual;
 
-                this.view.camera.add(this.visual);
+                this._view.camera.add(this.visual);
             }.bind(this)
         );
     }

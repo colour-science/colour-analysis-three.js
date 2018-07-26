@@ -1,8 +1,8 @@
 import { removeObjectByName } from '../common.js';
 
 class Visual {
-    constructor(scene, settings) {
-        this._scene = scene;
+    constructor(parent, settings) {
+        this._parent = parent;
 
         this._name = settings.name || 'visual';
         this._visible = settings.visible || true;
@@ -12,17 +12,17 @@ class Visual {
         this._visual = undefined;
     }
 
-    get scene() {
-        return this._scene;
+    get parent() {
+        return this._parent;
     }
 
-    set scene(value) {
-        if (this._scene != undefined) {
-            removeObjectByName(this._scene, this._name);
+    set parent(value) {
+        if (this._parent != undefined) {
+            removeObjectByName(this._parent, this._name);
         }
-        this._scene = value;
+        this._parent = value;
         if (this._visual != undefined) {
-            this._scene.add(this._visual);
+            this._parent.add(this._visual);
         }
     }
 
@@ -60,12 +60,12 @@ class Visual {
     }
 
     set visual(value) {
-        if (this._scene != undefined) {
-            removeObjectByName(this._scene, this._name);
+        if (this._parent != undefined) {
+            removeObjectByName(this._parent, this._name);
         }
         this._visual = value;
         if (this._visual != undefined) {
-            this._scene.add(this._visual);
+            this._parent.add(this._visual);
         }
     }
 
@@ -74,8 +74,8 @@ class Visual {
     }
 
     add() {
-        if (this._scene != undefined) {
-            removeObjectByName(this._scene, this._name);
+        if (this._parent != undefined) {
+            removeObjectByName(this._parent, this._name);
         }
 
         var route = this.route();
@@ -83,7 +83,7 @@ class Visual {
         if (route in this._cache) {
             this._visual = this._cache[route];
 
-            this._scene.add(this._visual);
+            this._parent.add(this._visual);
         } else {
             this.fetch(route);
         }
@@ -102,7 +102,10 @@ class Visual {
 
                 this._cache[route] = this._visual;
 
-                this._scene.add(this._visual);
+                this._parent.add(this._visual);
+                if (this._parent.parent != undefined){
+                console.log(this._parent.parent.children);
+            }
             }.bind(this)
         );
     }

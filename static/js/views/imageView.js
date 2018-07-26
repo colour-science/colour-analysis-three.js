@@ -19,8 +19,6 @@ class ImageView extends OrthographicView {
             ...settings
         };
 
-        this._cache = {};
-
         this.renderer.gammaOutput = settings.renderer.gammaOutput;
 
         this.scene.background = settings.scene.background;

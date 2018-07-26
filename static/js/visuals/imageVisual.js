@@ -2,8 +2,8 @@ import { Visual } from './visual.js';
 import { fetchJSON } from '../common.js';
 
 class ImageVisual extends Visual {
-    constructor(scene, settings) {
-        super(scene, { ...settings, ...{ name: 'image-visual' } });
+    constructor(parent, settings) {
+        super(parent, { ...settings, ...{ name: 'image-visual' } });
 
         this._image = settings.image || 'SonyF35-StillLife.sRGB.exr';
         this._colourspace = settings.colourspace || 'sRGB';
@@ -78,7 +78,7 @@ class ImageVisual extends Visual {
 
                 this.cache[route] = this.visual;
 
-                this.scene.add(this.visual);
+                this.parent.add(this.visual);
             }.bind(this)
         );
     }

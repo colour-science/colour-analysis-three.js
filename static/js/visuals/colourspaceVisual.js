@@ -1,8 +1,8 @@
 import { Visual } from './visual.js';
 
 class ColourspaceVisual extends Visual {
-    constructor(scene, settings) {
-        super(scene, settings);
+    constructor(parent, settings) {
+        super(parent, settings);
 
         this._colourspace = settings.colourspace || 'sRGB';
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
