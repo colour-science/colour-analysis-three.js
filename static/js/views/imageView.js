@@ -40,25 +40,7 @@ class ImageView extends OrthographicView {
     }
 
     set colourspaceModel(value) {
-        if (this._viewAxesVisual != undefined) {
-            this._viewAxesVisual.colourspaceModel = value;
-        }
-
-        if (this._workingColourspaceVisual != undefined) {
-            this._workingColourspaceVisual.colourspaceModel = value;
-        }
-
-        if (this._compareColourspaceVisual != undefined) {
-            this._compareColourspaceVisual.colourspaceModel = value;
-        }
-
-        if (this._spectralLocusVisual != undefined) {
-            this._spectralLocusVisual.colourspaceModel = value;
-        }
-
-        if (this._imageScatterVisual != undefined) {
-            this._imageScatterVisual.colourspaceModel = value;
-        }
+        this._colourspaceModel = value;
     }
 
     get workingColourspace() {
