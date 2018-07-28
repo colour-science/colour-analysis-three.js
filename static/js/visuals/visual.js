@@ -103,9 +103,6 @@ class Visual {
                 this._cache[route] = this._visual;
 
                 this._parent.add(this._visual);
-                if (this._parent.parent != undefined){
-                console.log(this._parent.parent.children);
-            }
             }.bind(this)
         );
     }

@@ -101,6 +101,7 @@
     <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/Detector.js"></script>
     <script src="https://cdn.rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
     <script type="module">
+
         import { GamutView } from "{{ url_for('static', filename = 'js/views/gamutView.js') }}";
         import { ImageView } from "{{ url_for('static', filename = 'js/views/imageView.js') }}";
         import { fetchJSON } from "{{ url_for('static', filename = 'js/common.js') }}";
@@ -111,13 +112,13 @@
         var image = 'Rose.ProPhoto.jpg';
 
         var gamutView1 = new GamutView(document.getElementById('gamutView1'));
-        gamutView1.workingColourspace = 'sRGB';
-        gamutView1.compareColourspace = 'DCI-P3';
+        gamutView1.primaryColourspace = 'sRGB';
+        gamutView1.secondaryColourspace = 'DCI-P3';
         gamutView1.imageColourspace = 'sRGB';
         gamutView1.addViewAxesVisual();
         gamutView1.addSpectralLocusVisual();
-        gamutView1.addCompareColourspaceVisual();
-        gamutView1.addWorkingColourspaceVisual();
+        gamutView1.addSecondaryColourspaceVisual();
+        gamutView1.addPrimaryColourspaceVisual();
         gamutView1.addImageScatterVisual({ image: image });
         gamutView1.animate();
 
@@ -129,15 +130,17 @@
             constructor() {
                 this.colourspaceModel = [];
 
-                this.workingColourspace = [];
-                this.workingColourspaceVisualVisible = true;
-                this.workingColourspaceVisualOpacity = 0.75;
+                this.primaryColourspace = gamutView1.primaryColourspace;
+                this.primaryColourspaceVisualWireframe = false;
+                this.primaryColourspaceVisualVisible = true;
+                this.primaryColourspaceVisualOpacity = 0.75;
 
-                this.compareColourspace = [];
-                this.compareColourspaceVisualVisible = true;
-                this.compareColourspaceVisualOpacity = 0.75;
+                this.secondaryColourspace = gamutView1.secondaryColourspace;
+                this.secondaryColourspaceVisualWireframe = true;
+                this.secondaryColourspaceVisualVisible = true;
+                this.secondaryColourspaceVisualOpacity = 0.75;
 
-                this.imageColourspace = [];
+                this.imageColourspace = 'Primary';
                 this.imageScatterVisualSaturate = false;
                 this.imageScatterVisualVisible = true;
                 this.imageScatterVisualOpacity = 0.75;
@@ -151,7 +154,7 @@
         var gui = new dat.GUI({ width: 320 });
         var colourspaceModelController = gui
             .add(controls, 'colourspaceModel', [])
-            .name('Colourspace Model');
+            .name('Model');
         var updateColourspaceModelDropdown = updateDropdown.bind(
             null,
             controls,
@@ -164,69 +167,94 @@
             gamutView1.colourspaceModel = value;
         });
 
-        // Working Colourspace
-        var workingColourspaceFolder = gui.addFolder('Working Colourspace');
-        var workingColourspaceController = workingColourspaceFolder
-            .add(controls, 'workingColourspace', [])
-            .name('Colourspace');
-        workingColourspaceFolder
-            .add(controls, 'workingColourspaceVisualVisible')
+        // Primary Colourspace
+        var primaryColourspaceFolder = gui.addFolder('Primary Colourspace');
+        var primaryColourspaceController = primaryColourspaceFolder
+            .add(controls, 'primaryColourspace', [])
+            .name('Gamut');
+        primaryColourspaceFolder
+            .add(controls, 'primaryColourspaceVisualWireframe')
+            .name('Wireframe')
+            .onChange(function (value) {
+                gamutView1.primaryColourspaceVisual.wireframe = value;
+            });
+        primaryColourspaceFolder
+            .add(controls, 'primaryColourspaceVisualVisible')
             .name('Visible')
             .onChange(function (value) {
-                gamutView1.workingColourspaceVisual.visible = value;
+                gamutView1.primaryColourspaceVisual.visible = value;
             });
-        workingColourspaceFolder
-            .add(controls, 'workingColourspaceVisualOpacity', 0, 1)
+        primaryColourspaceFolder
+            .add(controls, 'primaryColourspaceVisualOpacity', 0, 1)
             .name('Opacity')
             .onChange(function (value) {
-                gamutView1.workingColourspaceVisual.uniformOpacity = value;
+                gamutView1.primaryColourspaceVisual.uniformOpacity = value;
             });
-        var updateWorkingColourspaceDropdown = updateDropdown.bind(
+        var updatePrimaryColourspaceDropdown = updateDropdown.bind(
             null,
             controls,
-            'workingColourspace',
-            workingColourspaceController,
-            gamutView1.workingColourspace
+            'primaryColourspace',
+            primaryColourspaceController,
+            gamutView1.primaryColourspace
         );
-        fetchJSON('/RGB-colourspaces', updateWorkingColourspaceDropdown);
-        workingColourspaceController.onChange(function (value) {
-            gamutView1.workingColourspace = value;
+        fetchJSON('/RGB-colourspaces', updatePrimaryColourspaceDropdown);
+        primaryColourspaceController.onChange(function (value) {
+            gamutView1.primaryColourspace = value;
         });
 
-        // Compare Colourspace
-        var compareColourspaceFolder = gui.addFolder('Compare Colourspace');
-        var compareColourspaceController = compareColourspaceFolder
-            .add(controls, 'compareColourspace', [])
-            .name('Colourspace');
-        compareColourspaceFolder
-            .add(controls, 'compareColourspaceVisualVisible')
+        // Secondary Colourspace
+        var secondaryColourspaceFolder = gui.addFolder('Secondary Colourspace');
+        var secondaryColourspaceController = secondaryColourspaceFolder
+            .add(controls, 'secondaryColourspace', [])
+            .name('Gamut');
+        secondaryColourspaceFolder
+            .add(controls, 'secondaryColourspaceVisualWireframe')
+            .name('Wireframe')
+            .onChange(function (value) {
+                gamutView1.secondaryColourspaceVisual.wireframe = value;
+            });
+        secondaryColourspaceFolder
+            .add(controls, 'secondaryColourspaceVisualVisible')
             .name('Visible')
             .onChange(function (value) {
-                gamutView1.compareColourspaceVisual.visible = value;
+                gamutView1.secondaryColourspaceVisual.visible = value;
             });
-        compareColourspaceFolder
-            .add(controls, 'compareColourspaceVisualOpacity', 0, 1)
+        secondaryColourspaceFolder
+            .add(controls, 'secondaryColourspaceVisualOpacity', 0, 1)
             .name('Opacity')
             .onChange(function (value) {
-                gamutView1.compareColourspaceVisual.uniformOpacity = value;
+                gamutView1.secondaryColourspaceVisual.uniformOpacity = value;
             });
-        var updateCompareColourspaceDropdown = updateDropdown.bind(
+        var updateSecondaryColourspaceDropdown = updateDropdown.bind(
             null,
             controls,
-            'compareColourspace',
-            compareColourspaceController,
-            gamutView1.compareColourspace
+            'secondaryColourspace',
+            secondaryColourspaceController,
+            gamutView1.secondaryColourspace
         );
-        fetchJSON('/RGB-colourspaces', updateCompareColourspaceDropdown);
-        compareColourspaceController.onChange(function (value) {
-            gamutView1.compareColourspace = value;
+        fetchJSON('/RGB-colourspaces', updateSecondaryColourspaceDropdown);
+        secondaryColourspaceController.onChange(function (value) {
+            gamutView1.secondaryColourspace = value;
         });
 
         // Image & Scatter
         var imageScatterFolder = gui.addFolder('Image & Scatter');
         var imageColourspaceController = imageScatterFolder
-            .add(controls, 'imageColourspace', [])
-            .name('Colourspace');
+            .add(controls, 'imageColourspace', ['Primary', 'Secondary'])
+            .name('Gamut')
+            .onChange(function (value) {
+                if (value == 'Primary') {
+                    var index =
+                        primaryColourspaceController.domElement.childNodes[0]
+                            .selectedIndex;
+                    gamutView1.imageColourspace = controls.primaryColourspace[index];
+                } else if (value == 'Secondary') {
+                    var index =
+                        secondaryColourspaceController.domElement.childNodes[0]
+                            .selectedIndex;
+                    gamutView1.imageColourspace = controls.secondaryColourspace[index];
+                }
+            });
         imageScatterFolder
             .add(controls, 'imageScatterVisualVisible')
             .name('Visible')
@@ -241,7 +269,7 @@
             });
         imageScatterFolder
             .add(controls, 'imageScatterVisualSaturate')
-            .name('Saturate')
+            .name('Clamp [0, 1]')
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.saturate = value;
             });
@@ -251,17 +279,6 @@
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.pointSize = value;
             });
-        var updateImageColourspaceDropdown = updateDropdown.bind(
-            null,
-            controls,
-            'imageColourspace',
-            imageColourspaceController,
-            gamutView1.imageColourspace
-        );
-        fetchJSON('/RGB-colourspaces', updateImageColourspaceDropdown);
-        imageColourspaceController.onChange(function (value) {
-            gamutView1.imageColourspace = value;
-        });
 
         // Spectral Locus
         var spectralLocusFolder = gui.addFolder('Spectral Locus');

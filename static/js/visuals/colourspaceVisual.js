@@ -58,7 +58,6 @@ class ColourspaceVisual extends Visual {
         this._uniformOpacity = value;
         Object.keys(this.cache).forEach(
             function(key) {
-                this.cache[key].material.transparent = value != 1.0,
                 this.cache[key].material.opacity = value;
             }.bind(this)
         );
@@ -70,12 +69,19 @@ class ColourspaceVisual extends Visual {
 
     set wireframe(value) {
         this._wireframe = value;
-        this.add();
+        Object.keys(this.cache).forEach(
+            function(key) {
+                this.cache[key].material.wireframe = value;
+            }.bind(this)
+        );
+    }
+
+    get wireframeColour() {
+        return this._wireframeColour;
     }
 
     set wireframeColour(value) {
-        this._wireframeColour = value;
-        this.add();
+        throw new Error('"wireframeOpacity" property is read only!');
     }
 
     get wireframeOpacity() {

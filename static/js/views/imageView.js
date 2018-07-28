@@ -28,8 +28,8 @@ class ImageView extends OrthographicView {
 
         this._colourspaceModel = 'CIE xyY';
 
-        this._workingColourspace = 'sRGB';
-        this._compareColourspace = 'DCI-P3';
+        this._primaryColourspace = 'sRGB';
+        this._secondaryColourspace = 'DCI-P3';
         this._imageColourspace = 'sRGB';
 
         this._imageVisual = undefined;
@@ -43,20 +43,20 @@ class ImageView extends OrthographicView {
         this._colourspaceModel = value;
     }
 
-    get workingColourspace() {
-        return this._workingColourspace;
+    get primaryColourspace() {
+        return this._primaryColourspace;
     }
 
-    set workingColourspace(value) {
-        this._workingColourspace = value;
+    set primaryColourspace(value) {
+        this._primaryColourspace = value;
     }
 
-    get compareColourspace() {
-        return this._compareColourspace;
+    get secondaryColourspace() {
+        return this._secondaryColourspace;
     }
 
-    set compareColourspace(value) {
-        this._compareColourspace = value;
+    set secondaryColourspace(value) {
+        this._secondaryColourspace = value;
     }
 
     get imageColourspace() {

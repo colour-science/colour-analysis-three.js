@@ -70,8 +70,8 @@ class GamutView extends PerspectiveView {
 
         this._colourspaceModel = 'CIE xyY';
 
-        this._workingColourspace = 'sRGB';
-        this._compareColourspace = 'DCI-P3';
+        this._primaryColourspace = 'sRGB';
+        this._secondaryColourspace = 'DCI-P3';
         this._imageColourspace = 'sRGB';
 
         this._viewAxesVisual = undefined;
@@ -82,17 +82,17 @@ class GamutView extends PerspectiveView {
         this._scene.add(this._spectralLocusVisualGroup);
         this._spectralLocusVisual = undefined;
 
-        this._compareColourspaceVisualGroup = new THREE.Group();
-        this._compareColourspaceVisualGroup.name =
-            'compare-colourspace-visual-group';
-        this._scene.add(this._compareColourspaceVisualGroup);
-        this._compareColourspaceVisual = undefined;
+        this._secondaryColourspaceVisualGroup = new THREE.Group();
+        this._secondaryColourspaceVisualGroup.name =
+            'secondary-colourspace-visual-group';
+        this._scene.add(this._secondaryColourspaceVisualGroup);
+        this._secondaryColourspaceVisual = undefined;
 
-        this._workingColourspaceVisualGroup = new THREE.Group();
-        this._workingColourspaceVisualGroup.name =
-            'working-colourspace-visual-group';
-        this._scene.add(this._workingColourspaceVisualGroup);
-        this._workingColourspaceVisual = undefined;
+        this._primaryColourspaceVisualGroup = new THREE.Group();
+        this._primaryColourspaceVisualGroup.name =
+            'primary-colourspace-visual-group';
+        this._scene.add(this._primaryColourspaceVisualGroup);
+        this._primaryColourspaceVisual = undefined;
 
         this._imageScatterVisualGroup = new THREE.Group();
         this._imageScatterVisualGroup.name = 'image-scatter-visual-group';
@@ -115,12 +115,12 @@ class GamutView extends PerspectiveView {
             this._spectralLocusVisual.colourspaceModel = value;
         }
 
-        if (this._compareColourspaceVisual != undefined) {
-            this._compareColourspaceVisual.colourspaceModel = value;
+        if (this._secondaryColourspaceVisual != undefined) {
+            this._secondaryColourspaceVisual.colourspaceModel = value;
         }
 
-        if (this._workingColourspaceVisual != undefined) {
-            this._workingColourspaceVisual.colourspaceModel = value;
+        if (this._primaryColourspaceVisual != undefined) {
+            this._primaryColourspaceVisual.colourspaceModel = value;
         }
 
         if (this._imageScatterVisual != undefined) {
@@ -128,27 +128,27 @@ class GamutView extends PerspectiveView {
         }
     }
 
-    get workingColourspace() {
-        return this._workingColourspace;
+    get primaryColourspace() {
+        return this._primaryColourspace;
     }
 
-    set workingColourspace(value) {
-        this._workingColourspace = value;
+    set primaryColourspace(value) {
+        this._primaryColourspace = value;
 
-        if (this._workingColourspaceVisual != undefined) {
-            this._workingColourspaceVisual.colourspace = value;
+        if (this._primaryColourspaceVisual != undefined) {
+            this._primaryColourspaceVisual.colourspace = value;
         }
     }
 
-    get compareColourspace() {
-        return this._compareColourspace;
+    get secondaryColourspace() {
+        return this._secondaryColourspace;
     }
 
-    set compareColourspace(value) {
-        this._compareColourspace = value;
+    set secondaryColourspace(value) {
+        this._secondaryColourspace = value;
 
-        if (this._compareColourspaceVisual != undefined) {
-            this._compareColourspaceVisual.colourspace = value;
+        if (this._secondaryColourspaceVisual != undefined) {
+            this._secondaryColourspaceVisual.colourspace = value;
         }
     }
 
@@ -180,20 +180,20 @@ class GamutView extends PerspectiveView {
         throw new Error('"spectralLocusVisual" property is read only!');
     }
 
-    get compareColourspaceVisual() {
-        return this._compareColourspaceVisual;
+    get secondaryColourspaceVisual() {
+        return this._secondaryColourspaceVisual;
     }
 
-    set compareColourspaceVisual(value) {
-        throw new Error('"compareColourspaceVisual" property is read only!');
+    set secondaryColourspaceVisual(value) {
+        throw new Error('"secondaryColourspaceVisual" property is read only!');
     }
 
-    get workingColourspaceVisual() {
-        return this._workingColourspaceVisual;
+    get primaryColourspaceVisual() {
+        return this._primaryColourspaceVisual;
     }
 
-    set workingColourspaceVisual(value) {
-        throw new Error('"workingColourspaceVisual" property is read only!');
+    set primaryColourspaceVisual(value) {
+        throw new Error('"primaryColourspaceVisual" property is read only!');
     }
 
     get imageScatterVisual() {
@@ -219,7 +219,7 @@ class GamutView extends PerspectiveView {
             this._spectralLocusVisualGroup,
             {
                 ...{
-                    colourspace: this._compareColourspace,
+                    colourspace: this._secondaryColourspace,
                     colourspaceModel: this._colourspaceModel
                 },
                 ...settings
@@ -228,36 +228,35 @@ class GamutView extends PerspectiveView {
         this._spectralLocusVisual.add();
     }
 
-    addCompareColourspaceVisual(settings) {
-        this._compareColourspaceVisual = new ColourspaceVisual(
-            this._compareColourspaceVisualGroup,
+    addSecondaryColourspaceVisual(settings) {
+        this._secondaryColourspaceVisual = new ColourspaceVisual(
+            this._secondaryColourspaceVisualGroup,
             {
                 ...{
-                    name: 'compare-colourspace-visual',
-                    colourspace: this._compareColourspace,
+                    name: 'secondary-colourspace-visual',
+                    colourspace: this._secondaryColourspace,
                     colourspaceModel: this._colourspaceModel,
-                    segments: 8,
                     wireframe: true
                 },
                 ...settings
             }
         );
-        this._compareColourspaceVisual.add();
+        this._secondaryColourspaceVisual.add();
     }
 
-    addWorkingColourspaceVisual(settings) {
-        this._workingColourspaceVisual = new ColourspaceVisual(
-            this._workingColourspaceVisualGroup,
+    addPrimaryColourspaceVisual(settings) {
+        this._primaryColourspaceVisual = new ColourspaceVisual(
+            this._primaryColourspaceVisualGroup,
             {
                 ...{
-                    name: 'working-colourspace-visual',
-                    colourspace: this._workingColourspace,
+                    name: 'primary-colourspace-visual',
+                    colourspace: this._primaryColourspace,
                     colourspaceModel: this._colourspaceModel
                 },
                 ...settings
             }
         );
-        this._workingColourspaceVisual.add();
+        this._primaryColourspaceVisual.add();
     }
 
     addImageScatterVisual(settings) {
@@ -266,7 +265,7 @@ class GamutView extends PerspectiveView {
             {
                 ...{
                     image: settings.image,
-                    colourspace: this._workingColourspace,
+                    colourspace: this._primaryColourspace,
                     colourspaceModel: this._colourspaceModel
                 },
                 ...settings

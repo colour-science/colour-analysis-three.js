@@ -12,7 +12,6 @@ class ImageScatterVisual extends Visual {
         this._subSampling = settings.subSampling || 25;
         this._pointSize = settings.pointSize || 0.01;
         this._saturate = settings.saturate || false;
-        console.log(this._colourspace);
     }
 
     get image() {
@@ -96,7 +95,6 @@ class ImageScatterVisual extends Visual {
     }
 
     route() {
-        console.log(this._colourspace);
         return (
             `/RGB-image-scatter-visual/${this._image}?` +
             `colourspace=${this._colourspace}&` +
@@ -115,7 +113,7 @@ class ImageScatterVisual extends Visual {
             size: this._pointSize
         });
 
-        var visual = new THREE.ParticleSystem(geometry, material);
+        var visual = new THREE.Points(geometry, material);
         visual.name = this.name;
         visual.visible = this.visible;
 
