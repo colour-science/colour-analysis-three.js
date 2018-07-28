@@ -8,8 +8,6 @@ function updateDropdown(controls, attribute, dropdown, value, options) {
 
     keys.sort();
 
-    controls[attribute] = keys;
-
     var innerHTML = '<select>\n';
 
     for (var i = 0; i < keys.length; i++) {

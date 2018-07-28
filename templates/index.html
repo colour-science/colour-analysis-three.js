@@ -141,10 +141,12 @@
                 this.secondaryColourspaceVisualOpacity = 0.75;
 
                 this.imageColourspace = 'Primary';
-                this.imageScatterVisualSaturate = false;
                 this.imageScatterVisualVisible = true;
                 this.imageScatterVisualOpacity = 0.75;
                 this.imageScatterVisualSize = 0.01;
+                this.displayPrimaryColourspaceOutOfGamut = false;
+                this.displaySecondaryColourspaceOutOfGamut = false;
+                this.imageScatterVisualSaturate = false;
 
                 this.spectralLocusVisualVisible = true;
             }
@@ -200,6 +202,10 @@
         fetchJSON('/RGB-colourspaces', updatePrimaryColourspaceDropdown);
         primaryColourspaceController.onChange(function (value) {
             gamutView1.primaryColourspace = value;
+
+            if (controls.imageColourspace == 'Primary') {
+                gamutView1.imageColourspace = value;
+            }
         });
 
         // Secondary Colourspace
@@ -235,6 +241,10 @@
         fetchJSON('/RGB-colourspaces', updateSecondaryColourspaceDropdown);
         secondaryColourspaceController.onChange(function (value) {
             gamutView1.secondaryColourspace = value;
+
+            if (controls.imageColourspace == 'Secondary') {
+                gamutView1.imageColourspace = value;
+            }
         });
 
         // Image & Scatter
@@ -244,16 +254,12 @@
             .name('Gamut')
             .onChange(function (value) {
                 if (value == 'Primary') {
-                    var index =
-                        primaryColourspaceController.domElement.childNodes[0]
-                            .selectedIndex;
-                    gamutView1.imageColourspace = controls.primaryColourspace[index];
+                    var colourspace = controls.primaryColourspace;
                 } else if (value == 'Secondary') {
-                    var index =
-                        secondaryColourspaceController.domElement.childNodes[0]
-                            .selectedIndex;
-                    gamutView1.imageColourspace = controls.secondaryColourspace[index];
+                    var colourspace = controls.secondaryColourspace;
                 }
+
+                gamutView1.imageColourspace = colourspace;
             });
         imageScatterFolder
             .add(controls, 'imageScatterVisualVisible')
@@ -268,16 +274,28 @@
                 gamutView1.imageScatterVisual.uniformOpacity = value;
             });
         imageScatterFolder
-            .add(controls, 'imageScatterVisualSaturate')
-            .name('Clamp [0, 1]')
-            .onChange(function (value) {
-                gamutView1.imageScatterVisual.saturate = value;
-            });
-        imageScatterFolder
             .add(controls, 'imageScatterVisualSize', 0.005, 0.1)
             .name('Point Size')
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.pointSize = value;
+            });
+        imageScatterFolder
+            .add(controls, 'displayPrimaryColourspaceOutOfGamut')
+            .name('Display Primary Colourspace Out of Gamut')
+            .onChange(function (value) {
+                console.log(value);
+            });
+        imageScatterFolder
+            .add(controls, 'displaySecondaryColourspaceOutOfGamut')
+            .name('Display Secondary Colourspace Out of Gamut')
+            .onChange(function (value) {
+                console.log(value);
+            });
+        imageScatterFolder
+            .add(controls, 'imageScatterVisualSaturate')
+            .name('Clamp')
+            .onChange(function (value) {
+                gamutView1.imageScatterVisual.saturate = value;
             });
 
         // Spectral Locus
