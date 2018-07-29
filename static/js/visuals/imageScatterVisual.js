@@ -2,10 +2,12 @@ import { Visual } from './visual.js';
 
 class ImageScatterVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...settings, ...{ name: 'image-scatter-visual' } });
+        super(parent, { ...{ name: 'image-scatter-visual' }, ...settings });
 
         this._image = settings.image || 'SonyF35-StillLife.sRGB.exr';
-        this._colourspace = settings.colourspace || 'sRGB';
+        this._primaryColourspace = settings.primaryColourspace || 'sRGB';
+        this._secondaryColourspace = settings.secondaryColourspace || 'DCI-P3';
+        this._imageColourspace = settings.imageColourspace || 'Primary';
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
         this._uniformColour = settings.uniformColour || undefined;
         this._uniformOpacity = settings.uniformOpacity || 0.75;
@@ -23,12 +25,46 @@ class ImageScatterVisual extends Visual {
         this.add();
     }
 
-    get colourspace() {
-        return this._colourspace;
+    get imageColourspace() {
+        return this._imageColourspace;
     }
 
-    set colourspace(value) {
-        this._colourspace = value;
+    set imageColourspace(value) {
+        this._imageColourspace = value;
+        this.add();
+    }
+
+    get primaryColourspace() {
+        return this._primaryColourspace;
+    }
+
+    set primaryColourspace(value) {
+        this._primaryColourspace = value;
+        this.add();
+    }
+
+    get secondaryColourspace() {
+        return this._secondaryColourspace;
+    }
+
+    set secondaryColourspace(value) {
+        this._secondaryColourspace = value;
+        this.add();
+    }
+
+    get imageColourspace() {
+        return this._imageColourspace;
+    }
+
+    set imageColourspace(value) {
+        if (!['Primary', 'Secondary'].includes(value)) {
+            throw new Error(
+                '"imageColourspace" value must be ' +
+                    'one of ["Primary", "Secondary"]!'
+            );
+        }
+
+        this._imageColourspace = value;
         this.add();
     }
 
@@ -97,7 +133,9 @@ class ImageScatterVisual extends Visual {
     route() {
         return (
             `/RGB-image-scatter-visual/${this._image}?` +
-            `colourspace=${this._colourspace}&` +
+            `primaryColourspace=${this._primaryColourspace}&` +
+            `secondaryColourspace=${this._secondaryColourspace}&` +
+            `imageColourspace=${this._imageColourspace}&` +
             `colourspaceModel=${this._colourspaceModel}&` +
             `uniformColour=${this._uniformColour}&` +
             `subSampling=${this._subSampling}&` +

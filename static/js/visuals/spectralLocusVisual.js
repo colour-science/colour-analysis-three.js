@@ -2,7 +2,7 @@ import { Visual } from './visual.js';
 
 class SpectralLocusVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...settings, ...{ name: 'spectral-locus-visual' } });
+        super(parent, { ...{ name: 'spectral-locus-visual' }, ...settings });
 
         this._colourspace = settings.colourspace || 'sRGB';
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';

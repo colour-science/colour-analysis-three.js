@@ -3,11 +3,20 @@ import { fetchJSON } from '../common.js';
 
 class ImageVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...settings, ...{ name: 'image-visual' } });
+        super(parent, { ...{ name: 'image-visual' }, ...settings });
 
         this._image = settings.image || 'SonyF35-StillLife.sRGB.exr';
-        this._colourspace = settings.colourspace || 'sRGB';
+        this._primaryColourspace = settings.primaryColourspace || 'sRGB';
+        this._secondaryColourspace = settings.secondaryColourspace || 'DCI-P3';
+        this._imageColourspace = settings.imageColourspace || 'Primary';
+        this._outOfPrimaryColourspaceGamut =
+            settings.outOfPrimaryColourspaceGamut || false;
+        this._outOfSecondaryColourspaceGamut =
+            settings.outOfSecondaryColourspaceGamut || false;
         this._saturate = settings.saturate || false;
+        this._uniformOpacity = settings.uniformOpacity || 1.0;
+
+        this._depth = settings.depth || 0;
     }
 
     get image() {
@@ -19,12 +28,54 @@ class ImageVisual extends Visual {
         this.add();
     }
 
-    get colourspace() {
-        return this._colourspace;
+    get primaryColourspace() {
+        return this._primaryColourspace;
     }
 
-    set colourspace(value) {
-        this._colourspace = value;
+    set primaryColourspace(value) {
+        this._primaryColourspace = value;
+        this.add();
+    }
+
+    get secondaryColourspace() {
+        return this._secondaryColourspace;
+    }
+
+    set secondaryColourspace(value) {
+        this._secondaryColourspace = value;
+        this.add();
+    }
+
+    get imageColourspace() {
+        return this._imageColourspace;
+    }
+
+    set imageColourspace(value) {
+        if (!['Primary', 'Secondary'].includes(value)) {
+            throw new Error(
+                '"imageColourspace" value must be ' +
+                    'one of ["Primary", "Secondary"]!'
+            );
+        }
+        this._imageColourspace = value;
+        this.add();
+    }
+
+    get outOfPrimaryColourspaceGamut() {
+        return this._outOfPrimaryColourspaceGamut;
+    }
+
+    set outOfPrimaryColourspaceGamut(value) {
+        this._outOfPrimaryColourspaceGamut = value;
+        this.add();
+    }
+
+    get outOfSecondaryColourspaceGamut() {
+        return this._outOfSecondaryColourspaceGamut;
+    }
+
+    set outOfSecondaryColourspaceGamut(value) {
+        this._outOfSecondaryColourspaceGamut = value;
         this.add();
     }
 
@@ -37,8 +88,41 @@ class ImageVisual extends Visual {
         this.add();
     }
 
+    get uniformOpacity() {
+        return this._uniformOpacity;
+    }
+
+    set uniformOpacity(value) {
+        this._uniformOpacity = value;
+        Object.keys(this.cache).forEach(
+            function(key) {
+                this.cache[key].material.opacity = value;
+            }.bind(this)
+        );
+    }
+
+    get depth() {
+        return this._depth;
+    }
+
+    set depth(value) {
+        throw new Error('"depth" property is read only!');
+    }
+
     route() {
-        return `/image-data/${this._image}?saturate=${this._saturate}`;
+        return (
+            `/image-data/${this._image}?` +
+            `primaryColourspace=${this._primaryColourspace}&` +
+            `secondaryColourspace=${this._secondaryColourspace}&` +
+            `imageColourspace=${this._imageColourspace}&` +
+            `outOfPrimaryColourspaceGamut=${
+                this._outOfPrimaryColourspaceGamut
+            }&` +
+            `outOfSecondaryColourspaceGamut=${
+                this._outOfSecondaryColourspaceGamut
+            }&` +
+            `saturate=${this._saturate}`
+        );
     }
 
     create(geometry) {
@@ -56,14 +140,24 @@ class ImageVisual extends Visual {
         );
         texture.needsUpdate = true;
 
-        var material = new THREE.MeshBasicMaterial({
-            map: texture
-        });
+        if (this._uniformOpacity == 1.0) {
+            var material = new THREE.MeshBasicMaterial({
+                map: texture
+            });
+        } else {
+            var material = new THREE.MeshBasicMaterial({
+                map: texture,
+                alphaMap: texture,
+                transparent: true,
+                opacity: this._uniformOpacity
+            });
+        }
 
         var visual = new THREE.Mesh(plane, material);
         visual.name = this.name;
         visual.visible = this.visible;
 
+        visual.position.set(0, this._depth, 0);
         visual.rotation.set(
             THREE.Math.degToRad(-90),
             0,

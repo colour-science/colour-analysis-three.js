@@ -2,10 +2,13 @@ from __future__ import division
 
 import json
 import numpy as np
+import os
 import re
+from werkzeug.contrib.cache import SimpleCache
 
 from colour import RGB_COLOURSPACES, RGB_to_XYZ, read_image
-from colour.models import (XYZ_to_colourspace_model, XYZ_to_RGB, oetf_reverse_sRGB)
+from colour.models import (XYZ_to_colourspace_model, XYZ_to_RGB, RGB_to_RGB,
+                           oetf_reverse_sRGB)
 from colour.plotting import (COLOUR_STYLE_CONSTANTS, filter_cmfs,
                              filter_RGB_colourspaces)
 from colour.utilities import first_item, normalise_maximum, tsplit, tstack
@@ -28,6 +31,27 @@ COLOURSPACE_MODELS_LABELS = {
     'Hunter Lab': ('a', 'L', 'b'),
     'Hunter Rdab': ('a', 'Rd', 'b')
 }
+
+PRIMARY_COLOURSPACE = 'sRGB'
+
+SECONDARY_COLOURSPACE = 'DCI-P3'
+
+IMAGE_COLOURSPACE = 'Primary'
+
+COLOURSPACE_MODEL = 'CIE xyY'
+
+IMAGE_CACHE = SimpleCache(default_timeout=1440)
+
+
+def load_image(path):
+    RGB = IMAGE_CACHE.get(path)
+    if RGB is None:
+        RGB = read_image(path)
+        if os.path.splitext(path)[-1].lower() not in LINEAR_FILE_FORMATS:
+            RGB = oetf_reverse_sRGB(RGB)
+        IMAGE_CACHE.set(path, RGB)
+
+    return RGB
 
 
 def colourspace_model_axis_reorder(a, model=None):
@@ -310,8 +334,8 @@ def create_box(width=1,
     return vertices, faces, outline
 
 
-def RGB_colourspace_volume_visual(colourspace='sRGB',
-                                  colourspace_model='CIE xyY',
+def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
+                                  colourspace_model=COLOURSPACE_MODEL,
                                   segments=16,
                                   uniform_colour=None,
                                   wireframe=False,
@@ -356,8 +380,8 @@ def RGB_colourspace_volume_visual(colourspace='sRGB',
     return buffer_geometry(position=vertices, color=RGB, index=faces)
 
 
-def spectral_locus_visual(colourspace='sRGB',
-                          colourspace_model='CIE xyY',
+def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
+                          colourspace_model=COLOURSPACE_MODEL,
                           cmfs='CIE 1931 2 Degree Standard Observer',
                           uniform_colour=None):
 
@@ -383,17 +407,26 @@ def spectral_locus_visual(colourspace='sRGB',
 
 
 def RGB_image_scatter_visual(path,
-                             colourspace='sRGB',
-                             colourspace_model='CIE xyY',
+                             primary_colourspace=PRIMARY_COLOURSPACE,
+                             secondary_colourspace=SECONDARY_COLOURSPACE,
+                             image_colourspace=IMAGE_COLOURSPACE,
+                             colourspace_model=COLOURSPACE_MODEL,
                              uniform_colour=None,
                              sub_sampling=25,
+                             out_of_primary_colourspace_gamut=False,
+                             out_of_secondary_colourspace_gamut=False,
                              saturate=False):
-    colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
+    primary_colourspace = first_item(
+        filter_RGB_colourspaces('^{0}$'.format(
+            re.escape(primary_colourspace))))
+    secondary_colourspace = first_item(
+        filter_RGB_colourspaces('^{0}$'.format(
+            re.escape(secondary_colourspace))))
 
-    RGB = read_image(path)
-    if path.split('.')[-1].lower() not in LINEAR_FILE_FORMATS:
-        RGB = oetf_reverse_sRGB(RGB)
+    colourspace = (primary_colourspace if image_colourspace == 'Primary' else
+                   secondary_colourspace)
+
+    RGB = load_image(path)
 
     if saturate:
         RGB = np.clip(RGB, 0, 1)
@@ -412,13 +445,41 @@ def RGB_image_scatter_visual(path,
     return buffer_geometry(position=vertices, color=RGB)
 
 
-def image_data(path, saturate=False):
-    RGB = read_image(path)
-    if path.split('.')[-1].lower() not in LINEAR_FILE_FORMATS:
-        RGB = oetf_reverse_sRGB(RGB)
+def image_data(path,
+               primary_colourspace=PRIMARY_COLOURSPACE,
+               secondary_colourspace=SECONDARY_COLOURSPACE,
+               image_colourspace=IMAGE_COLOURSPACE,
+               out_of_primary_colourspace_gamut=False,
+               out_of_secondary_colourspace_gamut=False,
+               saturate=False):
+    primary_colourspace = first_item(
+        filter_RGB_colourspaces('^{0}$'.format(
+            re.escape(primary_colourspace))))
+    secondary_colourspace = first_item(
+        filter_RGB_colourspaces('^{0}$'.format(
+            re.escape(secondary_colourspace))))
+
+    colourspace = (primary_colourspace if image_colourspace == 'Primary' else
+                   secondary_colourspace)
+
+    RGB = load_image(path)
 
     if saturate:
         RGB = np.clip(RGB, 0, 1)
+
+    if out_of_primary_colourspace_gamut:
+        if image_colourspace == 'Secondary':
+            RGB = RGB_to_RGB(RGB, secondary_colourspace, primary_colourspace)
+
+        RGB[RGB >= 0] = 0
+        RGB[RGB < 0] = 1
+
+    if out_of_secondary_colourspace_gamut:
+        if image_colourspace == 'Primary':
+            RGB = RGB_to_RGB(RGB, primary_colourspace, secondary_colourspace)
+
+        RGB[RGB >= 0] = 0
+        RGB[RGB < 0] = 1
 
     shape = RGB.shape
     RGB = np.ravel(RGB[..., 0:3].reshape(-1, 3))

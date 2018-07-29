@@ -72,7 +72,8 @@ class GamutView extends PerspectiveView {
 
         this._primaryColourspace = 'sRGB';
         this._secondaryColourspace = 'DCI-P3';
-        this._imageColourspace = 'sRGB';
+
+        this._imageColourspace = 'Primary';
 
         this._viewAxesVisual = undefined;
 
@@ -138,6 +139,10 @@ class GamutView extends PerspectiveView {
         if (this._primaryColourspaceVisual != undefined) {
             this._primaryColourspaceVisual.colourspace = value;
         }
+
+        if (this._imageScatterVisual != undefined) {
+            this._imageScatterVisual.primaryColourspace = value;
+        }
     }
 
     get secondaryColourspace() {
@@ -150,6 +155,10 @@ class GamutView extends PerspectiveView {
         if (this._secondaryColourspaceVisual != undefined) {
             this._secondaryColourspaceVisual.colourspace = value;
         }
+
+        if (this._imageScatterVisual != undefined) {
+            this._imageScatterVisual.secondaryColourspace = value;
+        }
     }
 
     get imageColourspace() {
@@ -157,10 +166,16 @@ class GamutView extends PerspectiveView {
     }
 
     set imageColourspace(value) {
-        this._imageColourspace = value;
+        if (!['Primary', 'Secondary'].includes(value)) {
+            throw new Error(
+                '"imageColourspace" value must be ' +
+                    'one of ["Primary", "Secondary"]!'
+            );
+        }
 
+        this._imageColourspace = value;
         if (this._imageScatterVisual != undefined) {
-            this._imageScatterVisual.colourspace = value;
+            this._imageScatterVisual.imageColourspace = value;
         }
     }
 
@@ -265,7 +280,9 @@ class GamutView extends PerspectiveView {
             {
                 ...{
                     image: settings.image,
-                    colourspace: this._primaryColourspace,
+                    primaryColourspace: this._primaryColourspace,
+                    secondaryColourspace: this._secondaryColourspace,
+                    imageColourspace: this._imageColourspace,
                     colourspaceModel: this._colourspaceModel
                 },
                 ...settings

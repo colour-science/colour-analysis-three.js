@@ -30,9 +30,19 @@ class ImageView extends OrthographicView {
 
         this._primaryColourspace = 'sRGB';
         this._secondaryColourspace = 'DCI-P3';
-        this._imageColourspace = 'sRGB';
 
+        this._imageColourspace = 'Primary';
+
+        // The following groups are defining the rendering order.
+        this._imageVisualGroup = new THREE.Group();
+        this._imageVisualGroup.name = 'image-visual-group';
+        this._scene.add(this._imageVisualGroup);
         this._imageVisual = undefined;
+
+        this._imageOverlayVisualGroup = new THREE.Group();
+        this._imageOverlayVisualGroup.name = 'image-overlay-visual-group';
+        this._scene.add(this._imageOverlayVisualGroup);
+        this._imageOverlayVisual = undefined;
     }
 
     get colourspaceModel() {
@@ -49,6 +59,10 @@ class ImageView extends OrthographicView {
 
     set primaryColourspace(value) {
         this._primaryColourspace = value;
+
+        if (this._imageOverlayVisual != undefined) {
+            this._imageOverlayVisual.primaryColourspace = value;
+        }
     }
 
     get secondaryColourspace() {
@@ -57,6 +71,10 @@ class ImageView extends OrthographicView {
 
     set secondaryColourspace(value) {
         this._secondaryColourspace = value;
+
+        if (this._imageOverlayVisual != undefined) {
+            this._imageOverlayVisual.secondaryColourspace = value;
+        }
     }
 
     get imageColourspace() {
@@ -64,18 +82,80 @@ class ImageView extends OrthographicView {
     }
 
     set imageColourspace(value) {
+        if (!['Primary', 'Secondary'].includes(value)) {
+            throw new Error(
+                '"imageColourspace" value must be ' +
+                    'one of ["Primary", "Secondary"]!'
+            );
+        }
+
         this._imageColourspace = value;
+
+        if (this._imageOverlayVisual != undefined) {
+            this._imageOverlayVisual.imageColourspace = value;
+        }
+    }
+
+    get imageVisual() {
+        return this._imageVisual;
+    }
+
+    set imageVisual(value) {
+        throw new Error('"imageVisual" property is read only!');
+    }
+
+    get imageOverlayVisual() {
+        return this._imageOverlayVisual;
+    }
+
+    set imageOverlayVisual(value) {
+        throw new Error('"imageOverlayVisual" property is read only!');
     }
 
     addImageVisual(settings) {
-        this._imageVisual = new ImageVisual(this.scene, {
+        this._imageVisual = new ImageVisual(this._imageVisualGroup, {
             ...{
+                name: 'image-visual',
                 image: settings.image,
-                colourspace: this._imageColourspace
+                primaryColourspace: this._primaryColourspace,
+                secondaryColourspace: this._secondaryColourspace,
+                imageColourspace: this._imageColourspace
             },
             ...settings
         });
         this._imageVisual.add();
+    }
+
+    addImageOverlayVisual(settings) {
+        this._imageOverlayVisual = new ImageVisual(
+            this._imageOverlayVisualGroup,
+            {
+                ...{
+                    name: 'image-overlay-visual',
+                    image: settings.image,
+                    primaryColourspace: this._primaryColourspace,
+                    secondaryColourspace: this._secondaryColourspace,
+                    imageColourspace: this._imageColourspace,
+                    uniformOpacity: 0.75,
+                    depth: 0.5
+                },
+                ...settings
+            }
+        );
+        this._imageOverlayVisual.add();
+    }
+
+    animate() {
+        if (this._imageOverlayVisual != undefined) {
+            if (this._imageOverlayVisual.visual != undefined) {
+                this._imageOverlayVisual.visual.material.opacity =
+                    (this._imageOverlayVisual.uniformOpacity *
+                        (1 + Math.sin(new Date().getTime() * 0.0015))) /
+                    2;
+            }
+        }
+
+        super.animate();
     }
 }
 

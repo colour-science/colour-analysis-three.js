@@ -6,13 +6,15 @@ from werkzeug.contrib.cache import SimpleCache
 
 from colour.utilities import domain_range_scale
 
-from colour_analysis import (RGB_colourspaces, RGB_colourspace_volume_visual,
-                             colourspace_models, spectral_locus_visual,
-                             RGB_image_scatter_visual, image_data)
+from colour_analysis import (
+    COLOURSPACE_MODEL, IMAGE_COLOURSPACE, PRIMARY_COLOURSPACE,
+    RGB_colourspaces, RGB_colourspace_volume_visual, SECONDARY_COLOURSPACE,
+    colourspace_models, spectral_locus_visual, RGB_image_scatter_visual,
+    image_data)
 
 APP = Flask(__name__)
 
-CACHE = SimpleCache(default_timeout=3600)
+APP_CACHE = SimpleCache(default_timeout=1440)
 
 
 def _null_to_None(data):
@@ -36,18 +38,16 @@ def _hash(data):
 
 
 def from_cache(key, callable):
-    data = CACHE.get(key)
+    data = APP_CACHE.get(key)
     if data is None:
         data = callable()
-        CACHE.set(key, data)
+        APP_CACHE.set(key, data)
     return data
 
 
 @APP.route('/colourspace-models')
 def colourspace_models_response():
-    json_data = from_cache(
-        _hash(['/colourspace-models'] + sorted(request.args.items())),
-        colourspace_models)
+    json_data = from_cache(_hash(request.full_path), colourspace_models)
 
     response = make_response(json_data)
 
@@ -56,9 +56,7 @@ def colourspace_models_response():
 
 @APP.route('/RGB-colourspaces')
 def RGB_colourspaces_response():
-    json_data = from_cache(
-        _hash(['/RGB-colourspaces'] + sorted(request.args.items())),
-        RGB_colourspaces)
+    json_data = from_cache(_hash(request.full_path), RGB_colourspaces)
 
     response = make_response(json_data)
 
@@ -69,10 +67,9 @@ def RGB_colourspaces_response():
 def RGB_colourspace_volume_visual_response():
     args = request.args
     json_data = from_cache(
-        _hash(['/RGB-colourspace-volume-visual'] + sorted(args.items())),
-        lambda: RGB_colourspace_volume_visual(
-            colourspace=args.get('colourspace', 'sRGB'),
-            colourspace_model=args.get('colourspaceModel', 'CIE xyY'),
+        _hash(request.full_path), lambda: RGB_colourspace_volume_visual(
+            colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
+            colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
             segments=int(args.get('segments', 16)),
             uniform_colour=_null_to_None(args.get('uniformColour', None)),
             wireframe=_bool_to_bool(args.get('wireframe', False)),
@@ -88,10 +85,9 @@ def RGB_colourspace_volume_visual_response():
 def spectral_locus_visual_response():
     args = request.args
     json_data = from_cache(
-        _hash(['/spectral-locus-visual'] + sorted(args.items())),
-        lambda: spectral_locus_visual(
-            colourspace=args.get('colourspace', 'sRGB'),
-            colourspace_model=args.get('colourspaceModel', 'CIE xyY'),
+        _hash(request.full_path), lambda: spectral_locus_visual(
+            colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
+            colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
             uniform_colour=_null_to_None(args.get('uniformColour', None)),
         ))
 
@@ -106,11 +102,14 @@ def RGB_image_scatter_visual_response(image):
 
     args = request.args
     json_data = from_cache(
-        _hash(['/RGB-image-scatter-visual'] + sorted(args.items())),
-        lambda: RGB_image_scatter_visual(
+        _hash(request.full_path), lambda: RGB_image_scatter_visual(
             path=path,
-            colourspace=args.get('colourspace', 'sRGB'),
-            colourspace_model=args.get('colourspaceModel', 'CIE xyY'),
+            primary_colourspace=args.get('primaryColourspace',
+                                         PRIMARY_COLOURSPACE),
+            secondary_colourspace=args.get('secondaryColourspace',
+                                           SECONDARY_COLOURSPACE),
+            image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
+            colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
             uniform_colour=_null_to_None(args.get('uniformColour', None)),
             sub_sampling=int(args.get('subSampling', 25)),
             saturate=_bool_to_bool(args.get('saturate', False)),
@@ -127,9 +126,18 @@ def image_data_response(image):
 
     args = request.args
     json_data = from_cache(
-        _hash(['/image-data/<image>'] + sorted(args.items())),
-        lambda: image_data(path
-        , saturate=_bool_to_bool(args.get('saturate', False))))
+        _hash(request.full_path), lambda: image_data(
+            path=path,
+            primary_colourspace=args.get('primaryColourspace',
+                                         PRIMARY_COLOURSPACE),
+            secondary_colourspace=args.get('secondaryColourspace',
+                                           SECONDARY_COLOURSPACE),
+            image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
+            out_of_primary_colourspace_gamut=_bool_to_bool(args.get(
+                'outOfPrimaryColourspaceGamut', False)),
+            out_of_secondary_colourspace_gamut=_bool_to_bool(args.get(
+                'outOfSecondaryColourspaceGamut', False)),
+            saturate=_bool_to_bool(args.get('saturate', False))))
 
     response = make_response(json_data)
 

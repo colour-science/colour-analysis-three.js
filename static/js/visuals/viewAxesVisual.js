@@ -3,7 +3,7 @@ import { fetchJSON, rotateToWorld } from '../common.js';
 
 class ViewAxesVisual extends Visual {
     constructor(view, settings) {
-        super(view.camera, { ...settings, ...{ name: 'view-axes-visual' } });
+        super(view.camera, { ...{ name: 'view-axes-visual' }, ...settings });
 
         this._view = view;
 
