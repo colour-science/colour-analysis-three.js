@@ -103,6 +103,11 @@ class Visual {
                 this._cache[route] = this._visual;
 
                 this._parent.add(this._visual);
+            }.bind(this),
+            function(progress) {
+                var percentage = (progress.loaded / progress.total) * 100;
+
+                console.log(`${this._name}: ${percentage}% loaded!`);
             }.bind(this)
         );
     }
