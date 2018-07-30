@@ -1,7 +1,9 @@
 import os
 from flask import Flask, Response, render_template, request
-from flask_compress import Compress, DictCache
+from flask_caching import Cache
+from flask_compress import Compress
 from io import BytesIO
+from werkzeug.contrib.cache import SimpleCache
 
 from colour.utilities import domain_range_scale
 
@@ -11,12 +13,17 @@ from colour_analysis import (
     colourspace_models, spectral_locus_visual, RGB_image_scatter_visual,
     image_data)
 
+CACHE = Cache(config={'CACHE_TYPE': 'simple'})
+CACHE_DEFAULT_TIMEOUT = 1440
+
 APP = Flask(__name__)
+CACHE.init_app(APP)
 
 APP.config.update(
     COMPRESS_LEVEL=3,
     COMPRESS_CACHE_KEY=lambda x: x.full_path,
-    COMPRESS_CACHE_BACKEND=DictCache,
+    COMPRESS_CACHE_BACKEND=lambda: SimpleCache(default_timeout=
+                                               CACHE_DEFAULT_TIMEOUT),
 )
 
 Compress(APP)
@@ -39,6 +46,7 @@ def _bool_to_bool(data):
 
 
 @APP.route('/colourspace-models')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def colourspace_models_response():
     json_data = colourspace_models()
 
@@ -48,6 +56,7 @@ def colourspace_models_response():
 
 
 @APP.route('/RGB-colourspaces')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def RGB_colourspaces_response():
     json_data = RGB_colourspaces()
 
@@ -57,6 +66,7 @@ def RGB_colourspaces_response():
 
 
 @APP.route('/RGB-colourspace-volume-visual')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def RGB_colourspace_volume_visual_response():
     args = request.args
     json_data = RGB_colourspace_volume_visual(
@@ -74,6 +84,7 @@ def RGB_colourspace_volume_visual_response():
 
 
 @APP.route('/spectral-locus-visual')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def spectral_locus_visual_response():
     args = request.args
     json_data = spectral_locus_visual(
@@ -88,6 +99,7 @@ def spectral_locus_visual_response():
 
 
 @APP.route('/RGB-image-scatter-visual/<image>')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def RGB_image_scatter_visual_response(image):
     path = os.path.join(os.getcwd(), 'static', 'images', image)
 
@@ -111,7 +123,9 @@ def RGB_image_scatter_visual_response(image):
 
 
 @APP.route('/image-data/<image>')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def image_data_response(image):
+    print(request.path)
     path = os.path.join(os.getcwd(), 'static', 'images', image)
 
     args = request.args
