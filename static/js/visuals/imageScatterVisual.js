@@ -11,6 +11,10 @@ class ImageScatterVisual extends Visual {
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
         this._uniformColour = settings.uniformColour || undefined;
         this._uniformOpacity = settings.uniformOpacity || 0.75;
+        this._outOfPrimaryColourspaceGamut =
+            settings.outOfPrimaryColourspaceGamut || false;
+        this._outOfSecondaryColourspaceGamut =
+            settings.outOfSecondaryColourspaceGamut || false;
         this._subSampling = settings.subSampling || 25;
         this._pointSize = settings.pointSize || 0.01;
         this._saturate = settings.saturate || false;
@@ -99,6 +103,24 @@ class ImageScatterVisual extends Visual {
         );
     }
 
+    get outOfPrimaryColourspaceGamut() {
+        return this._outOfPrimaryColourspaceGamut;
+    }
+
+    set outOfPrimaryColourspaceGamut(value) {
+        this._outOfPrimaryColourspaceGamut = value;
+        this.add();
+    }
+
+    get outOfSecondaryColourspaceGamut() {
+        return this._outOfSecondaryColourspaceGamut;
+    }
+
+    set outOfSecondaryColourspaceGamut(value) {
+        this._outOfSecondaryColourspaceGamut = value;
+        this.add();
+    }
+
     get subSampling() {
         return this._subSampling;
     }
@@ -137,7 +159,12 @@ class ImageScatterVisual extends Visual {
             `secondaryColourspace=${this._secondaryColourspace}&` +
             `imageColourspace=${this._imageColourspace}&` +
             `colourspaceModel=${this._colourspaceModel}&` +
-            `uniformColour=${this._uniformColour}&` +
+            `outOfPrimaryColourspaceGamut=${
+                this._outOfPrimaryColourspaceGamut
+            }&` +
+            `outOfSecondaryColourspaceGamut=${
+                this._outOfSecondaryColourspaceGamut
+            }&` +
             `subSampling=${this._subSampling}&` +
             `saturate=${this._saturate}&`
         );

@@ -73,9 +73,7 @@ def RGB_colourspace_volume_visual_response():
         colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
         colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
         segments=int(args.get('segments', 16)),
-        uniform_colour=_null_to_None(args.get('uniformColour', None)),
         wireframe=_bool_to_bool(args.get('wireframe', False)),
-        wireframe_colour=_null_to_None(args.get('wireframeColour', None)),
     )
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -90,7 +88,6 @@ def spectral_locus_visual_response():
     json_data = spectral_locus_visual(
         colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
         colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
-        uniform_colour=_null_to_None(args.get('uniformColour', None)),
     )
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -112,7 +109,10 @@ def RGB_image_scatter_visual_response(image):
                                        SECONDARY_COLOURSPACE),
         image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
         colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
-        uniform_colour=_null_to_None(args.get('uniformColour', None)),
+        out_of_primary_colourspace_gamut=_bool_to_bool(
+            args.get('outOfPrimaryColourspaceGamut', False)),
+        out_of_secondary_colourspace_gamut=_bool_to_bool(
+            args.get('outOfSecondaryColourspaceGamut', False)),
         sub_sampling=int(args.get('subSampling', 25)),
         saturate=_bool_to_bool(args.get('saturate', False)),
     )
@@ -125,7 +125,6 @@ def RGB_image_scatter_visual_response(image):
 @APP.route('/image-data/<image>')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def image_data_response(image):
-    print(request.path)
     path = os.path.join(os.getcwd(), 'static', 'images', image)
 
     args = request.args

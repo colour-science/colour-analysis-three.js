@@ -337,9 +337,7 @@ def create_box(width=1,
 def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
                                   colourspace_model=COLOURSPACE_MODEL,
                                   segments=16,
-                                  uniform_colour=None,
-                                  wireframe=False,
-                                  wireframe_colour=None):
+                                  wireframe=False):
     colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
 
@@ -351,8 +349,7 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
     vertices = cube[0]['position'] + 0.5
     faces = colourspace_model_faces_reorder(
         np.reshape(cube[1], (-1, 1)), colourspace_model)
-    # outline = cube[2]
-    RGB = cube[0]['colour'] if uniform_colour is None else uniform_colour
+    RGB = cube[0]['colour']
 
     XYZ = RGB_to_XYZ(vertices, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
@@ -361,29 +358,12 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
                                  colourspace_model), colourspace_model)
     vertices[np.isnan(vertices)] = 0
 
-    # if wireframe:
-    #     vertices = vertices[outline].reshape(-1, 3)
-    #                if wireframe_colour is None else wireframe_colour)
-
-    #     mask = np.full(
-    #         outline.shape[0], face_mask(face_vertex_colours=True)).reshape(
-    #             -1, 1)
-
-    #     return geometry(
-    #         name=colourspace.name, vertices=vertices, colours=RGB,
-    #         faces=np.hstack([mask, outline, outline]))
-    # else:
-
-    # mask = np.full(
-    #     faces.shape[0], face_mask(face_vertex_colours=True)).reshape(-1, 1)
-
     return buffer_geometry(position=vertices, color=RGB, index=faces)
 
 
 def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
                           colourspace_model=COLOURSPACE_MODEL,
-                          cmfs='CIE 1931 2 Degree Standard Observer',
-                          uniform_colour=None):
+                          cmfs='CIE 1931 2 Degree Standard Observer'):
 
     colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
@@ -401,7 +381,7 @@ def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
     RGB = normalise_maximum(
         XYZ_to_RGB(XYZ, colourspace.whitepoint, colourspace.whitepoint,
                    colourspace.XYZ_to_RGB_matrix),
-        axis=-1) if uniform_colour is None else uniform_colour
+        axis=-1)
 
     return buffer_geometry(position=vertices, color=RGB)
 
@@ -411,10 +391,9 @@ def RGB_image_scatter_visual(path,
                              secondary_colourspace=SECONDARY_COLOURSPACE,
                              image_colourspace=IMAGE_COLOURSPACE,
                              colourspace_model=COLOURSPACE_MODEL,
-                             uniform_colour=None,
-                             sub_sampling=25,
                              out_of_primary_colourspace_gamut=False,
                              out_of_secondary_colourspace_gamut=False,
+                             sub_sampling=25,
                              saturate=False):
     primary_colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(
@@ -433,6 +412,22 @@ def RGB_image_scatter_visual(path,
 
     RGB = RGB[..., 0:3].reshape(-1, 3)[::sub_sampling]
 
+    if out_of_primary_colourspace_gamut:
+        RGB_c = np.copy(RGB)
+
+        if image_colourspace == 'Secondary':
+            RGB_c = RGB_to_RGB(RGB, secondary_colourspace, primary_colourspace)
+
+        RGB = RGB[np.any(RGB_c < 0, axis=1)]
+
+    if out_of_secondary_colourspace_gamut:
+        RGB_c = np.copy(RGB)
+
+        if image_colourspace == 'Primary':
+            RGB_c = RGB_to_RGB(RGB, primary_colourspace, secondary_colourspace)
+
+        RGB = RGB[np.any(RGB_c < 0, axis=1)]
+
     XYZ = RGB_to_XYZ(RGB, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
     vertices = colourspace_model_axis_reorder(
@@ -440,7 +435,8 @@ def RGB_image_scatter_visual(path,
                                  colourspace_model), colourspace_model)
     vertices[np.isnan(vertices)] = 0
 
-    RGB = RGB if uniform_colour is None else uniform_colour
+    if out_of_primary_colourspace_gamut or out_of_secondary_colourspace_gamut:
+        RGB = np.ones(RGB.shape)
 
     return buffer_geometry(position=vertices, color=RGB)
 
@@ -473,6 +469,7 @@ def image_data(path,
 
         RGB[RGB >= 0] = 0
         RGB[RGB < 0] = 1
+        RGB[np.any(RGB == 1, axis=-1)] = 1
 
     if out_of_secondary_colourspace_gamut:
         if image_colourspace == 'Primary':
@@ -480,6 +477,7 @@ def image_data(path,
 
         RGB[RGB >= 0] = 0
         RGB[RGB < 0] = 1
+        RGB[np.any(RGB == 1, axis=-1)] = 1
 
     shape = RGB.shape
     RGB = np.ravel(RGB[..., 0:3].reshape(-1, 3))

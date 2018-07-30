@@ -99,6 +99,12 @@ class GamutView extends PerspectiveView {
         this._imageScatterVisualGroup.name = 'image-scatter-visual-group';
         this._scene.add(this._imageScatterVisualGroup);
         this._imageScatterVisual = undefined;
+
+        this._imageScatterOverlayVisualGroup = new THREE.Group();
+        this._imageScatterOverlayVisualGroup.name =
+            'image-scatter-overlay-visual-group';
+        this._scene.add(this._imageScatterOverlayVisualGroup);
+        this._imageScatterOverlayVisual = undefined;
     }
 
     get colourspaceModel() {
@@ -127,6 +133,10 @@ class GamutView extends PerspectiveView {
         if (this._imageScatterVisual != undefined) {
             this._imageScatterVisual.colourspaceModel = value;
         }
+
+        if (this._imageScatterOverlayVisual != undefined) {
+            this._imageScatterOverlayVisual.colourspaceModel = value;
+        }
     }
 
     get primaryColourspace() {
@@ -142,6 +152,10 @@ class GamutView extends PerspectiveView {
 
         if (this._imageScatterVisual != undefined) {
             this._imageScatterVisual.primaryColourspace = value;
+        }
+
+        if (this._imageScatterOverlayVisual != undefined) {
+            this._imageScatterOverlayVisual.primaryColourspace = value;
         }
     }
 
@@ -159,6 +173,10 @@ class GamutView extends PerspectiveView {
         if (this._imageScatterVisual != undefined) {
             this._imageScatterVisual.secondaryColourspace = value;
         }
+
+        if (this._imageScatterOverlayVisual != undefined) {
+            this._imageScatterOverlayVisual.secondaryColourspace = value;
+        }
     }
 
     get imageColourspace() {
@@ -174,8 +192,13 @@ class GamutView extends PerspectiveView {
         }
 
         this._imageColourspace = value;
+
         if (this._imageScatterVisual != undefined) {
             this._imageScatterVisual.imageColourspace = value;
+        }
+
+        if (this._imageScatterOverlayVisual != undefined) {
+            this._imageScatterOverlayVisual.imageColourspace = value;
         }
     }
 
@@ -217,6 +240,14 @@ class GamutView extends PerspectiveView {
 
     set imageScatterVisual(value) {
         throw new Error('"imageScatterVisual" property is read only!');
+    }
+
+    get imageScatterOverlayVisual() {
+        return this._imageScatterOverlayVisual;
+    }
+
+    set imageScatterOverlayVisual(value) {
+        throw new Error('"imageScatterOverlayVisual" property is read only!');
     }
 
     addViewAxesVisual(settings) {
@@ -289,6 +320,38 @@ class GamutView extends PerspectiveView {
             }
         );
         this._imageScatterVisual.add();
+    }
+
+    addImageScatterOverlayVisual(settings) {
+        this._imageScatterOverlayVisual = new ImageScatterVisual(
+            this._imageScatterOverlayVisualGroup,
+            {
+                ...{
+                    name: 'image-scatter-overlay-visual',
+                    image: settings.image,
+                    primaryColourspace: this._primaryColourspace,
+                    secondaryColourspace: this._secondaryColourspace,
+                    imageColourspace: this._imageColourspace,
+                    colourspaceModel: this._colourspaceModel,
+                    uniformOpacity: 0.5
+                },
+                ...settings
+            }
+        );
+        this._imageScatterOverlayVisual.add();
+    }
+
+    animate() {
+        if (this._imageScatterOverlayVisual != undefined) {
+            if (this._imageScatterOverlayVisual.visual != undefined) {
+                this._imageScatterOverlayVisual.visual.material.opacity =
+                    (this._imageScatterOverlayVisual.uniformOpacity *
+                        (1 + Math.sin(new Date().getTime() * 0.0015))) /
+                    2;
+            }
+        }
+
+        super.animate();
     }
 }
 

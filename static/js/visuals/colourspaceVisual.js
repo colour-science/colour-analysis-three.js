@@ -98,9 +98,7 @@ class ColourspaceVisual extends Visual {
             `colourspace=${this._colourspace}&` +
             `colourspaceModel=${this._colourspaceModel}&` +
             `segments=${this._segments}&` +
-            `uniformColour=${this._uniformColour}&` +
-            `wireframe=${this._wireframe}&` +
-            `wireframeColour=${this._wireframeColour}&`
+            `wireframe=${this._wireframe}&`
         );
     }
 

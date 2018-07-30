@@ -9,12 +9,12 @@ class ImageVisual extends Visual {
         this._primaryColourspace = settings.primaryColourspace || 'sRGB';
         this._secondaryColourspace = settings.secondaryColourspace || 'DCI-P3';
         this._imageColourspace = settings.imageColourspace || 'Primary';
+        this._uniformOpacity = settings.uniformOpacity || 1.0;
         this._outOfPrimaryColourspaceGamut =
             settings.outOfPrimaryColourspaceGamut || false;
         this._outOfSecondaryColourspaceGamut =
             settings.outOfSecondaryColourspaceGamut || false;
         this._saturate = settings.saturate || false;
-        this._uniformOpacity = settings.uniformOpacity || 1.0;
 
         this._depth = settings.depth || 0;
     }
@@ -61,6 +61,19 @@ class ImageVisual extends Visual {
         this.add();
     }
 
+    get uniformOpacity() {
+        return this._uniformOpacity;
+    }
+
+    set uniformOpacity(value) {
+        this._uniformOpacity = value;
+        Object.keys(this.cache).forEach(
+            function(key) {
+                this.cache[key].material.opacity = value;
+            }.bind(this)
+        );
+    }
+
     get outOfPrimaryColourspaceGamut() {
         return this._outOfPrimaryColourspaceGamut;
     }
@@ -86,19 +99,6 @@ class ImageVisual extends Visual {
     set saturate(value) {
         this._saturate = value;
         this.add();
-    }
-
-    get uniformOpacity() {
-        return this._uniformOpacity;
-    }
-
-    set uniformOpacity(value) {
-        this._uniformOpacity = value;
-        Object.keys(this.cache).forEach(
-            function(key) {
-                this.cache[key].material.opacity = value;
-            }.bind(this)
-        );
     }
 
     get depth() {

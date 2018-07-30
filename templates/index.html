@@ -120,6 +120,7 @@
         gamutView1.addSecondaryColourspaceVisual();
         gamutView1.addPrimaryColourspaceVisual();
         gamutView1.addImageScatterVisual({ image: image });
+        gamutView1.addImageScatterOverlayVisual({ image: image });
         gamutView1.animate();
 
         var imageView1 = new ImageView(document.getElementById('imageView1'), {});
@@ -256,29 +257,34 @@
             .name('Visible')
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.visible = value;
+                gamutView1.imageScatterOverlayVisual.visible = value;
             });
         imageScatterFolder
             .add(controls, 'imageScatterVisualOpacity', 0, 1)
             .name('Opacity')
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.uniformOpacity = value;
+                gamutView1.imageScatterOverlayVisual.uniformOpacity = value;
             });
         imageScatterFolder
             .add(controls, 'imageScatterVisualSize', 0.005, 0.1)
             .name('Point Size')
             .onChange(function (value) {
                 gamutView1.imageScatterVisual.pointSize = value;
+                gamutView1.imageScatterOverlayVisual.pointSize = value;
             });
         imageScatterFolder
             .add(controls, 'outOfPrimaryColourspaceGamut')
             .name('Out of Primary Colourspace Gamut')
             .onChange(function (value) {
+                gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut = value;
                 imageView1.imageOverlayVisual.outOfPrimaryColourspaceGamut = value;
             });
         imageScatterFolder
             .add(controls, 'outOfSecondaryColourspaceGamut')
             .name('Out of Secondary Colourspace Gamut')
             .onChange(function (value) {
+                gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut = value;
                 imageView1.imageOverlayVisual.outOfSecondaryColourspaceGamut = value;
             });
         // imageScatterFolder

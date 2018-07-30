@@ -54,8 +54,7 @@ class SpectralLocusVisual extends Visual {
         return (
             `/spectral-locus-visual?` +
             `colourspace=${this._colourspace}&` +
-            `colourspaceModel=${this._colourspaceModel}&` +
-            `uniformColour=${this._uniformColour}&`
+            `colourspaceModel=${this._colourspaceModel}&`
         );
     }
 

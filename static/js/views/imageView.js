@@ -136,7 +136,7 @@ class ImageView extends OrthographicView {
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
                     imageColourspace: this._imageColourspace,
-                    uniformOpacity: 0.75,
+                    uniformOpacity: 0.5,
                     depth: 0.5
                 },
                 ...settings
