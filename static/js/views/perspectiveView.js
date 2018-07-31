@@ -27,7 +27,7 @@ class PerspectiveView extends View {
 
         this._scene.add(this._camera);
 
-        this._controls = new THREE.OrbitControls(this._camera, this.container);
+        this._controls = new THREE.TrackballControls(this._camera, this.container);
     }
 
     get camera() {
