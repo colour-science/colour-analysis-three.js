@@ -1,4 +1,4 @@
-import { removeObjectByName } from '../common.js';
+import { removeObjectByName, loadingCallback } from '../common.js';
 
 class Visual {
     constructor(parent, settings) {
@@ -95,6 +95,7 @@ class Visual {
 
     fetch(route) {
         var loader = new THREE.BufferGeometryLoader();
+
         loader.load(
             route,
             function(geometry, materials) {
@@ -103,7 +104,8 @@ class Visual {
                 this._cache[route] = this._visual;
 
                 this._parent.add(this._visual);
-            }.bind(this)
+            }.bind(this),
+            loadingCallback.bind(this)
         );
     }
 }

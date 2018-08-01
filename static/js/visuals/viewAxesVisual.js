@@ -1,5 +1,5 @@
 import { Visual } from './visual.js';
-import { fetchJSON, rotateToWorld } from '../common.js';
+import { rotateToWorld, loadingCallback } from '../common.js';
 
 class ViewAxesVisual extends Visual {
     constructor(view, settings) {
@@ -144,7 +144,10 @@ class ViewAxesVisual extends Visual {
     }
 
     fetch(route) {
-        fetchJSON(
+        var loader = new THREE.FileLoader();
+        loader.setResponseType('json');
+
+        loader.load(
             route,
             function(json) {
                 this.visual = this.create(json);
@@ -152,7 +155,8 @@ class ViewAxesVisual extends Visual {
                 this.cache[route] = this.visual;
 
                 this._view.camera.add(this.visual);
-            }.bind(this)
+            }.bind(this),
+            loadingCallback.bind(this)
         );
     }
 }

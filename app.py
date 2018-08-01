@@ -51,6 +51,7 @@ def colourspace_models_response():
     json_data = colourspace_models()
 
     response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
 
     return response
 
@@ -61,6 +62,7 @@ def RGB_colourspaces_response():
     json_data = RGB_colourspaces()
 
     response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
 
     return response
 
@@ -77,6 +79,7 @@ def RGB_colourspace_volume_visual_response():
     )
 
     response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
 
     return response
 
@@ -91,6 +94,7 @@ def spectral_locus_visual_response():
     )
 
     response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
 
     return response
 
@@ -118,6 +122,8 @@ def RGB_image_scatter_visual_response(image):
     )
 
     response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
+
 
     return response
 
@@ -142,6 +148,7 @@ def image_data_response(image):
         saturate=_bool_to_bool(args.get('saturate', False)))
 
     response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
 
     return response
 

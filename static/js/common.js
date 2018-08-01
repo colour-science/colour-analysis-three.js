@@ -1,16 +1,3 @@
-function fetchJSON(url, callback) {
-    return fetch(url)
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(json) {
-            callback(json);
-        })
-        .catch(function(error) {
-            console.error(error);
-        });
-}
-
 function removeObjectByName(scene, name) {
     while (scene.getObjectByName(name) != undefined) {
         var object = scene.getObjectByName(name);
@@ -44,4 +31,15 @@ function rotateToWorld(camera, controls) {
     };
 }
 
-export { fetchJSON, removeObjectByName, rotateToWorld };
+function loadingCallback(xhr) {
+    var loaded = Math.round(
+        (xhr.loaded /
+            parseFloat(xhr.target.getResponseHeader('x-content-length'))) *
+            100
+    );
+    document.getElementById('logging').innerText = `${
+        this.name
+    }: ${loaded}% loaded...`;
+}
+
+export { removeObjectByName, rotateToWorld, loadingCallback };

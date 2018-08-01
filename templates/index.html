@@ -16,33 +16,42 @@
             margin: 0px;
         }
 
+        .box {
+            display: flex;
+            flex-flow: column;
+            height: 100%;
+        }
+
+        .box .row {}
+
+        .box .row.header {
+            flex: 0 1 auto;
+        }
+
+        .box .row.content {
+            border: 8px solid #222222;
+            display: flex;
+            flex-direction: row;
+            height: 100%;
+        }
+
+        .box .row.footer {
+            flex: 0 1 auto;
+        }
+
         #info {
             color: #9C27B0;
-            position: fixed;
-            top: 0px;
-            left: 0px;
-            width: 100%;
-            padding: 1em;
-            z-index: 65535;
-        }
-
-        a {
-            color: #F44336;
-        }
-
-        #views {
-            box-sizing: border-box;
-            border: 8px solid #222222;
-            position: fixed;
-            top: 0px;
-            left: 0px;
-            height: 100%;
-            width: 100%;
+            padding: 4px;
         }
 
         #gamutView1,
         #imageView1 {
             background-color: #222222;
+        }
+
+        #logging {
+            color: #9C27B0;
+            padding: 4px;
         }
 
         /* Splitter */
@@ -61,14 +70,6 @@
             background-position: 50%;
         }
 
-        .gutter.gutter-horizontal {
-            cursor: ew-resize;
-        }
-
-        .gutter.gutter-vertical {
-            cursor: ns-resize;
-        }
-
         .split.split-horizontal,
         .gutter.gutter-horizontal {
             height: 100%;
@@ -78,21 +79,30 @@
 </head>
 
 <body>
-    <!-- <div id="info">
-        <a href="https://www.colour-science.org" target="_blank">colour-science.org</a> - Colour - Analysis
-    </div> -->
-
-    <div id="views">
-        <div id="gamutView1" class="split split-horizontal">
+    <div class="box">
+        <div class="row header">
+            <div id="info">
+                <a href="https://www.colour-science.org" target="_blank">colour-science.org</a> - Colour - Analysis
+            </div>
         </div>
-        <div id="imageView1" class="split split-horizontal">
+        <div class="row content">
+            <div id="gamutView1" class="split"></div>
+            <div id="imageView1" class="split"></div>
+        </div>
+        <div class="row footer">
+            <div id="logging"></div>
         </div>
     </div>
 
     <script src="https://cdn.rawgit.com/nathancahill/Split.js/master/split.min.js"></script>
     <script>
         Split(['#gamutView1', '#imageView1'], {
-            sizes: [50, 50],
+            elementStyle: function (dimension, size, gutterSize) {
+                return { 'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)' }
+            },
+            gutterStyle: function (dimension, gutterSize) {
+                return { 'flex-basis': gutterSize + 'px' }
+            }
         });
     </script>
 
@@ -105,7 +115,6 @@
 
         import { GamutView } from "{{ url_for('static', filename = 'js/views/gamutView.js') }}";
         import { ImageView } from "{{ url_for('static', filename = 'js/views/imageView.js') }}";
-        import { fetchJSON } from "{{ url_for('static', filename = 'js/common.js') }}";
         import { updateDropdown } from "{{ url_for('static', filename = 'js/gui.js') }}";
 
         if (!Detector.webgl) Detector.addGetWebGLMessage();
@@ -167,7 +176,10 @@
             colourspaceModelController,
             gamutView1.colourspaceModel
         );
-        fetchJSON('/colourspace-models', updateColourspaceModelDropdown);
+        var loader = new THREE.FileLoader();
+        loader.setResponseType('json');
+
+        loader.load('/colourspace-models', updateColourspaceModelDropdown);
         colourspaceModelController.onChange(function (value) {
             gamutView1.colourspaceModel = value;
         });
@@ -202,7 +214,7 @@
             primaryColourspaceController,
             gamutView1.primaryColourspace
         );
-        fetchJSON('/RGB-colourspaces', updatePrimaryColourspaceDropdown);
+        loader.load('/RGB-colourspaces', updatePrimaryColourspaceDropdown);
         primaryColourspaceController.onChange(function (value) {
             gamutView1.primaryColourspace = value;
             imageView1.primaryColourspace = value;
@@ -238,7 +250,7 @@
             secondaryColourspaceController,
             gamutView1.secondaryColourspace
         );
-        fetchJSON('/RGB-colourspaces', updateSecondaryColourspaceDropdown);
+        loader.load('/RGB-colourspaces', updateSecondaryColourspaceDropdown);
         secondaryColourspaceController.onChange(function (value) {
             gamutView1.secondaryColourspace = value;
             imageView1.secondaryColourspace = value;

@@ -1,5 +1,5 @@
 import { Visual } from './visual.js';
-import { fetchJSON } from '../common.js';
+import { loadingCallback } from '../common.js'
 
 class ImageVisual extends Visual {
     constructor(parent, settings) {
@@ -169,7 +169,10 @@ class ImageVisual extends Visual {
     }
 
     fetch(route) {
-        fetchJSON(
+        var loader = new THREE.FileLoader();
+        loader.setResponseType('json');
+
+        loader.load(
             route,
             function(json) {
                 this.visual = this.create(json);
@@ -177,7 +180,8 @@ class ImageVisual extends Visual {
                 this.cache[route] = this.visual;
 
                 this.parent.add(this.visual);
-            }.bind(this)
+            }.bind(this),
+            loadingCallback.bind(this)
         );
     }
 }
