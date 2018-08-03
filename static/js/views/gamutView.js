@@ -341,6 +341,17 @@ class GamutView extends PerspectiveView {
         this._imageScatterOverlayVisual.add();
     }
 
+    isLoading() {
+        return (
+            this._viewAxesVisual.loading ||
+            this._spectralLocusVisual.loading ||
+            this._secondaryColourspaceVisual.loading ||
+            this._primaryColourspaceVisual.loading ||
+            this._imageScatterVisual.loading ||
+            this._imageScatterOverlayVisual.loading
+        );
+    }
+
     animate() {
         if (this._imageScatterOverlayVisual != undefined) {
             if (this._imageScatterOverlayVisual.visual != undefined) {

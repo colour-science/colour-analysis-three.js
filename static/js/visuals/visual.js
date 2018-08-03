@@ -10,6 +10,8 @@ class Visual {
         this._cache = {};
 
         this._visual = undefined;
+
+        this._loading = false;
     }
 
     get parent() {
@@ -69,6 +71,14 @@ class Visual {
         }
     }
 
+    get loading() {
+        return this._loading;
+    }
+
+    set loading(value) {
+        throw new Error('"cache" property is read only!');
+    }
+
     route() {
         throw Error('Method must be reimplemented in subclass!');
     }
@@ -85,6 +95,8 @@ class Visual {
 
             this._parent.add(this._visual);
         } else {
+            this._loading = true;
+
             this.fetch(route);
         }
     }
@@ -104,6 +116,8 @@ class Visual {
                 this._cache[route] = this._visual;
 
                 this._parent.add(this._visual);
+
+                this._loading = false;
             }.bind(this),
             loadingCallback.bind(this)
         );

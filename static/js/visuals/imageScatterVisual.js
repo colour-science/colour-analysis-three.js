@@ -155,10 +155,14 @@ class ImageScatterVisual extends Visual {
     route() {
         return (
             `/RGB-image-scatter-visual/${this._image}?` +
-            `primaryColourspace=${this._primaryColourspace}&` +
-            `secondaryColourspace=${this._secondaryColourspace}&` +
-            `imageColourspace=${this._imageColourspace}&` +
-            `colourspaceModel=${this._colourspaceModel}&` +
+            `primaryColourspace=${encodeURIComponent(
+                this._primaryColourspace
+            )}&` +
+            `secondaryColourspace=${encodeURIComponent(
+                this._secondaryColourspace
+            )}&` +
+            `imageColourspace=${encodeURIComponent(this._imageColourspace)}&` +
+            `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&` +
             `outOfPrimaryColourspaceGamut=${
                 this._outOfPrimaryColourspaceGamut
             }&` +

@@ -53,8 +53,8 @@ class SpectralLocusVisual extends Visual {
     route() {
         return (
             `/spectral-locus-visual?` +
-            `colourspace=${this._colourspace}&` +
-            `colourspaceModel=${this._colourspaceModel}&`
+            `colourspace=${encodeURIComponent(this._colourspace)}&` +
+            `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&`
         );
     }
 

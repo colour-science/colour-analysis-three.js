@@ -145,6 +145,10 @@ class ImageView extends OrthographicView {
         this._imageOverlayVisual.add();
     }
 
+    isLoading() {
+        return this._imageVisual.loading || this._imageOverlayVisual.loading;
+    }
+
     animate() {
         if (this._imageOverlayVisual != undefined) {
             if (this._imageOverlayVisual.visual != undefined) {

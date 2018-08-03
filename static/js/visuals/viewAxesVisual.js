@@ -28,7 +28,9 @@ class ViewAxesVisual extends Visual {
     }
 
     route() {
-        return `/colourspace-models?colourspaceModel=${this._colourspaceModel}`;
+        return `/colourspace-models?colourspaceModel=${encodeURIComponent(
+            this._colourspaceModel
+        )}`;
     }
 
     create(json) {
@@ -155,6 +157,8 @@ class ViewAxesVisual extends Visual {
                 this.cache[route] = this.visual;
 
                 this._view.camera.add(this.visual);
+
+                this._loading = false;
             }.bind(this),
             loadingCallback.bind(this)
         );

@@ -1,5 +1,5 @@
 import { Visual } from './visual.js';
-import { loadingCallback } from '../common.js'
+import { loadingCallback } from '../common.js';
 
 class ImageVisual extends Visual {
     constructor(parent, settings) {
@@ -111,10 +111,14 @@ class ImageVisual extends Visual {
 
     route() {
         return (
-            `/image-data/${this._image}?` +
-            `primaryColourspace=${this._primaryColourspace}&` +
-            `secondaryColourspace=${this._secondaryColourspace}&` +
-            `imageColourspace=${this._imageColourspace}&` +
+            `/image-data/${encodeURIComponent(this._image)}?` +
+            `primaryColourspace=${encodeURIComponent(
+                this._primaryColourspace
+            )}&` +
+            `secondaryColourspace=${encodeURIComponent(
+                this._secondaryColourspace
+            )}&` +
+            `imageColourspace=${encodeURIComponent(this._imageColourspace)}&` +
             `outOfPrimaryColourspaceGamut=${
                 this._outOfPrimaryColourspaceGamut
             }&` +
@@ -180,6 +184,8 @@ class ImageVisual extends Visual {
                 this.cache[route] = this.visual;
 
                 this.parent.add(this.visual);
+
+                this._loading = false;
             }.bind(this),
             loadingCallback.bind(this)
         );

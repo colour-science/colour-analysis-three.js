@@ -95,8 +95,8 @@ class ColourspaceVisual extends Visual {
     route() {
         return (
             `/RGB-colourspace-volume-visual?` +
-            `colourspace=${this._colourspace}&` +
-            `colourspaceModel=${this._colourspaceModel}&` +
+            `colourspace=${encodeURIComponent(this._colourspace)}&` +
+            `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&` +
             `segments=${this._segments}&` +
             `wireframe=${this._wireframe}&`
         );
