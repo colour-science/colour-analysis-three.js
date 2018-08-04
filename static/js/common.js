@@ -32,9 +32,9 @@ function rotateToWorld(camera, controls) {
 }
 
 // https://stackoverflow.com/a/31658023/931625
-function fadeElement(element, registry, speed, delay) {
-    var speed = 10 || speed;
-    var delay = 5000 || delay;
+function fadeElement(element, registry, delay, speed) {
+    var delay = delay || 5000;
+    var speed = speed || 10;
 
     registry.push(
         setTimeout(function() {
@@ -61,22 +61,34 @@ function clearRegistry(element, registry) {
     }
 }
 
-window.messages_registry = new Array();
-
-function message(message) {
-    var element = document.getElementById('message');
-    element.innerText = message;
-    clearRegistry(element, window.messages_registry);
-    fadeElement(element, window.messages_registry);
+function message(text, element, registry, delay, speed) {
+    element.innerText = text;
+    clearRegistry(element, registry);
+    fadeElement(element, registry, delay, speed);
 }
 
-window.alerts_registry = new Array();
+window.info_id_registry = new Array();
 
-function alert(message) {
-    var element = document.getElementById('alert');
-    element.innerText = message;
-    clearRegistry(element, window.alerts_registry);
-    fadeElement(element, window.alerts_registry);
+function info(text, delay, speed) {
+    message(
+        text,
+        document.getElementById('info'),
+        window.info_id_registry,
+        delay,
+        speed
+    );
+}
+
+window.warning_id_registry = new Array();
+
+function warning(text, delay, speed) {
+    message(
+        text,
+        document.getElementById('warning'),
+        window.warning_id_registry,
+        delay,
+        speed
+    );
 }
 
 function loadingCallback(xhr) {
@@ -86,7 +98,7 @@ function loadingCallback(xhr) {
             100
     );
 
-    message(`${this.name}: ${loaded}% loaded...`);
+    info(`${this.name}: ${loaded}% loaded...`);
 }
 
 export {
@@ -94,6 +106,7 @@ export {
     rotateToWorld,
     fadeElement,
     message,
-    alert,
+    info,
+    warning,
     loadingCallback
 };
