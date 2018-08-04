@@ -129,10 +129,10 @@
 
         if (!Detector.webgl) Detector.addGetWebGLinfo();
 
-        var image = 'Rose.ProPhoto.jpg';
-        var primaryColourspace = 'sRGB';
-        var secondaryColourspace = 'DCI-P3';
-        var imageColourspace = 'Primary';
+        var image = '{{ image }}';
+        var primaryColourspace = '{{ primary_colourspace }}';
+        var secondaryColourspace = '{{ secondary_colourspace }}';
+        var imageColourspace = '{{ image_colourspace }}';
 
         var gamutView1 = new GamutView(
             document.getElementById('gamutView1'),
@@ -241,7 +241,7 @@
                 if (gamutView1.isLoading() || imageView1.isLoading()) {
                     warning('A visual is already loading!');
                     controls.imageColourspace = gamutView1.imageColourspace;
-                    secondaryColourspaceController.updateDisplay();
+                    imageColourspaceController.updateDisplay();
                     return;
                 }
 

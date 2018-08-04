@@ -51,7 +51,7 @@ APP = Flask(__name__)
 """
 *Flask* app.
 
-APP : Flask 
+APP : Flask
 """
 
 CACHE = Cache(config={'CACHE_TYPE': 'simple'})
@@ -325,7 +325,12 @@ def index():
         Index response.
     """
 
-    return render_template('index.html')
+    return render_template(
+        'index.html',
+        image=os.listdir(IMAGES_DIRECTORY)[0],
+        primary_colourspace=PRIMARY_COLOURSPACE,
+        secondary_colourspace=SECONDARY_COLOURSPACE,
+        image_colourspace=IMAGE_COLOURSPACE)
 
 
 if __name__ == '__main__':
