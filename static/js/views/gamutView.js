@@ -302,7 +302,8 @@ class GamutView extends PerspectiveView {
                     name: 'secondary-colourspace-visual',
                     colourspace: this._secondaryColourspace,
                     colourspaceModel: this._colourspaceModel,
-                    wireframe: true
+                    wireframe: true,
+                    uniformOpacity: 0.25
                 },
                 ...settings
             }

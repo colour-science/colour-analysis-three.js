@@ -660,7 +660,7 @@ def RGB_image_scatter_visual(path,
         if image_colourspace == 'Secondary':
             RGB_c = RGB_to_RGB(RGB, secondary_colourspace, primary_colourspace)
 
-        RGB = RGB[np.any(RGB_c < 0, axis=-1)]
+        RGB = RGB[np.any(np.logical_or(RGB_c < 0, RGB_c > 1), axis=-1)]
 
     if out_of_secondary_colourspace_gamut:
         RGB_c = np.copy(RGB)
@@ -668,7 +668,7 @@ def RGB_image_scatter_visual(path,
         if image_colourspace == 'Primary':
             RGB_c = RGB_to_RGB(RGB, primary_colourspace, secondary_colourspace)
 
-        RGB = RGB[np.any(RGB_c < 0, axis=-1)]
+        RGB = RGB[np.any(np.logical_or(RGB_c < 0, RGB_c > 1), axis=-1)]
 
     XYZ = RGB_to_XYZ(RGB, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
@@ -736,16 +736,16 @@ def image_data(path,
         if image_colourspace == 'Secondary':
             RGB = RGB_to_RGB(RGB, secondary_colourspace, primary_colourspace)
 
-        RGB[RGB >= 0] = 0
-        RGB[RGB < 0] = 1
+        RGB[np.logical_and(RGB >= 0, RGB <= 1)] = 0
+        RGB[RGB != 0] = 1
         RGB[np.any(RGB == 1, axis=-1)] = 1
 
     if out_of_secondary_colourspace_gamut:
         if image_colourspace == 'Primary':
             RGB = RGB_to_RGB(RGB, primary_colourspace, secondary_colourspace)
 
-        RGB[RGB >= 0] = 0
-        RGB[RGB < 0] = 1
+        RGB[np.logical_and(RGB >= 0, RGB <= 1)] = 0
+        RGB[RGB != 0] = 1
         RGB[np.any(RGB == 1, axis=-1)] = 1
 
     shape = RGB.shape

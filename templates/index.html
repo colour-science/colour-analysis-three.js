@@ -124,8 +124,14 @@
 
         import { GamutView } from "{{ url_for('static', filename = 'js/views/gamutView.js') }}";
         import { ImageView } from "{{ url_for('static', filename = 'js/views/imageView.js') }}";
-        import { updateDropdown } from "{{ url_for('static', filename = 'js/gui.js') }}";
-        import { info, warning } from "{{ url_for('static', filename = 'js/common.js') }}";
+        import {
+            updateDropdown,
+            dropdownOptions
+        } from "{{ url_for('static', filename = 'js/gui.js') }}";
+        import {
+            info,
+            warning
+        } from "{{ url_for('static', filename = 'js/common.js') }}";
 
         if (!Detector.webgl) Detector.addGetWebGLinfo();
 
@@ -134,15 +140,12 @@
         var secondaryColourspace = '{{ secondary_colourspace }}';
         var imageColourspace = '{{ image_colourspace }}';
 
-        var gamutView1 = new GamutView(
-            document.getElementById('gamutView1'),
-            {
-                image: image,
-                primaryColourspace: primaryColourspace,
-                secondaryColourspace: secondaryColourspace,
-                imageColourspace: imageColourspace
-            }
-        );
+        var gamutView1 = new GamutView(document.getElementById('gamutView1'), {
+            image: image,
+            primaryColourspace: primaryColourspace,
+            secondaryColourspace: secondaryColourspace,
+            imageColourspace: imageColourspace
+        });
         gamutView1.addViewAxesVisual();
         gamutView1.addSpectralLocusVisual();
         gamutView1.addSecondaryColourspaceVisual();
@@ -151,15 +154,12 @@
         gamutView1.addImageScatterOverlayVisual();
         gamutView1.animate();
 
-        var imageView1 = new ImageView(
-            document.getElementById('imageView1'),
-            {
-                image: image,
-                primaryColourspace: primaryColourspace,
-                secondaryColourspace: secondaryColourspace,
-                imageColourspace: imageColourspace
-            }
-        );
+        var imageView1 = new ImageView(document.getElementById('imageView1'), {
+            image: image,
+            primaryColourspace: primaryColourspace,
+            secondaryColourspace: secondaryColourspace,
+            imageColourspace: imageColourspace
+        });
         imageView1.addImageVisual();
         imageView1.addImageOverlayVisual();
         imageView1.animate();
@@ -177,7 +177,7 @@
                 this.secondaryColourspace = gamutView1.secondaryColourspace;
                 this.secondaryColourspaceVisualWireframe = true;
                 this.secondaryColourspaceVisualVisible = true;
-                this.secondaryColourspaceVisualOpacity = 0.75;
+                this.secondaryColourspaceVisualOpacity = 0.25;
 
                 this.imageColourspace = 'Primary';
                 this.imageScatterVisualVisible = true;
@@ -195,11 +195,11 @@
 
         var gui = new dat.GUI({ width: 360 });
 
-        // Overall
+        /*** Overall ***/
         var overallFolder = gui.addFolder('Overall');
-        var imageController = overallFolder
-            .add(controls, 'image', [])
-            .name('Image');
+
+        // Image
+        var imageController = overallFolder.add(controls, 'image', []).name('Image');
         var updateImageDropdown = updateDropdown.bind(
             null,
             controls,
@@ -212,10 +212,22 @@
 
         loader.load('/images', updateImageDropdown);
         imageController.onChange(function (value) {
+            if (gamutView1.isLoading() || imageView1.isLoading()) {
+                warning('A visual is already loading!');
+                controls.image = gamutView1.image;
+
+                var keys = dropdownOptions(imageController);
+                imageController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.image
+                );
+                return;
+            }
+
             gamutView1.image = value;
             imageView1.image = value;
         });
 
+        // Model
         var colourspaceModelController = overallFolder
             .add(controls, 'colourspaceModel', [])
             .name('Model');
@@ -231,9 +243,22 @@
 
         loader.load('/colourspace-models', updateColourspaceModelDropdown);
         colourspaceModelController.onChange(function (value) {
+            if (gamutView1.isLoading() || imageView1.isLoading()) {
+                warning('A visual is already loading!');
+                controls.colourspaceModel = gamutView1.colourspaceModel;
+
+                var keys = dropdownOptions(colourspaceModelController);
+                colourspaceModelController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.colourspaceModel
+                );
+                return;
+            }
+
             gamutView1.colourspaceModel = value;
+            imageView1.colourspaceModel = value;
         });
 
+        // Colourspace
         var imageColourspaceController = overallFolder
             .add(controls, 'imageColourspace', ['Primary', 'Secondary'])
             .name('Colourspace')
@@ -241,7 +266,11 @@
                 if (gamutView1.isLoading() || imageView1.isLoading()) {
                     warning('A visual is already loading!');
                     controls.imageColourspace = gamutView1.imageColourspace;
-                    imageColourspaceController.updateDisplay();
+
+                    var keys = dropdownOptions(imageColourspaceController);
+                    imageColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
+                        controls.imageColourspace
+                    );
                     return;
                 }
 
@@ -249,13 +278,15 @@
                 imageView1.imageColourspace = value;
             });
 
+        // Out of Primary Colourspace Gamut
         var outOfPrimaryColourspaceGamutController = overallFolder
             .add(controls, 'outOfPrimaryColourspaceGamut')
             .name('Out of Primary Colourspace Gamut')
             .onChange(function (value) {
                 if (gamutView1.isLoading() || imageView1.isLoading()) {
                     warning('A visual is already loading!');
-                    controls.outOfPrimaryColourspaceGamut = gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut;
+                    controls.outOfPrimaryColourspaceGamut =
+                        gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut;
                     outOfPrimaryColourspaceGamutController.updateDisplay();
                     return;
                 }
@@ -263,13 +294,16 @@
                 gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut = value;
                 imageView1.imageOverlayVisual.outOfPrimaryColourspaceGamut = value;
             });
+
+        // Out of Secondary Colourspace Gamut
         var outOfSecondaryColourspaceGamutController = overallFolder
             .add(controls, 'outOfSecondaryColourspaceGamut')
             .name('Out of Secondary Colourspace Gamut')
             .onChange(function (value) {
                 if (gamutView1.isLoading() || imageView1.isLoading()) {
                     warning('A visual is already loading!');
-                    controls.outOfSecondaryColourspaceGamut = gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut;
+                    controls.outOfSecondaryColourspaceGamut =
+                        gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut;
                     outOfSecondaryColourspaceGamutController.updateDisplay();
                     return;
                 }
@@ -284,7 +318,7 @@
         //         gamutView1.imageScatterVisual.saturate = value;
         //     });
 
-        // Primary Colourspace
+        /*** Primary Colourspace ***/
         var primaryColourspaceFolder = gui.addFolder('Primary Colourspace');
         var primaryColourspaceController = primaryColourspaceFolder
             .add(controls, 'primaryColourspace', [])
@@ -319,7 +353,11 @@
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 warning('A visual is already loading!');
                 controls.primaryColourspace = gamutView1.primaryColourspace;
-                primaryColourspaceController.updateDisplay();
+
+                var keys = dropdownOptions(primaryColourspaceController);
+                primaryColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.primaryColourspace
+                );
                 return;
             }
 
@@ -327,7 +365,7 @@
             imageView1.primaryColourspace = value;
         });
 
-        // Secondary Colourspace
+        /*** Secondary Colourspace ***/
         var secondaryColourspaceFolder = gui.addFolder('Secondary Colourspace');
         var secondaryColourspaceController = secondaryColourspaceFolder
             .add(controls, 'secondaryColourspace', [])
@@ -362,7 +400,11 @@
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 warning('A visual is already loading!');
                 controls.secondaryColourspace = gamutView1.secondaryColourspace;
-                secondaryColourspaceController.updateDisplay();
+
+                var keys = dropdownOptions(secondaryColourspaceController);
+                secondaryColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.secondaryColourspace
+                );
                 return;
             }
 
@@ -370,7 +412,7 @@
             imageView1.secondaryColourspace = value;
         });
 
-        // Image Scatter
+        /*** Image Scatter ***/
         var imageScatterFolder = gui.addFolder('Image Scatter');
         imageScatterFolder
             .add(controls, 'imageScatterVisualVisible')
@@ -394,7 +436,7 @@
                 gamutView1.imageScatterOverlayVisual.pointSize = value;
             });
 
-        // Spectral Locus
+        /*** Spectral Locus ***/
         var spectralLocusFolder = gui.addFolder('Spectral Locus');
         spectralLocusFolder
             .add(controls, 'spectralLocusVisualVisible')

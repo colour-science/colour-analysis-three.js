@@ -20,4 +20,16 @@ function updateDropdown(controls, attribute, dropdown, value, options) {
     dropdown.domElement.children[0].selectedIndex = keys.indexOf(value);
 }
 
-export { updateDropdown };
+function dropdownOptions(dropdown) {
+    dropdown = dropdown.domElement.children[0];
+    console.log(dropdown);
+    var options = new Array();
+
+    for (var i = 0; i < dropdown.options.length; i++) {
+        options[i] = dropdown.options[i].value;
+    }
+
+    return options;
+}
+
+export { updateDropdown, dropdownOptions };
