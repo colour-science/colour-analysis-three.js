@@ -1,8 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+Application
+===========
+"""
+
+from __future__ import division, unicode_literals
+
 import os
 from flask import Flask, Response, render_template, request
 from flask_caching import Cache
 from flask_compress import Compress
-from io import BytesIO
 from werkzeug.contrib.cache import SimpleCache
 
 from colour.utilities import domain_range_scale
@@ -13,10 +20,52 @@ from colour_analysis import (
     colourspace_models, spectral_locus_visual, RGB_image_scatter_visual,
     image_data)
 
-CACHE = Cache(config={'CACHE_TYPE': 'simple'})
-CACHE_DEFAULT_TIMEOUT = 1440
+__author__ = 'Colour Developers'
+__copyright__ = 'Copyright (C) 2018 - Colour Developers'
+__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
+__maintainer__ = 'Colour Developers'
+__email__ = 'colour-science@googlegroups.com'
+__status__ = 'Production'
+
+__application_name__ = 'Colour - Analysis'
+
+__major_version__ = '0'
+__minor_version__ = '1'
+__change_version__ = '0'
+__version__ = '.'.join(
+    (__major_version__,
+     __minor_version__,
+     __change_version__))  # yapf: disable
+
+
+__all__ = [
+    'APP', 'CACHE', 'CACHE_DEFAULT_TIMEOUT', 'colourspace_models_response',
+    'RGB_colourspaces_response', 'RGB_colourspace_volume_visual_response',
+    'spectral_locus_visual_response', 'RGB_image_scatter_visual_response',
+    'image_data_response', 'index'
+]
 
 APP = Flask(__name__)
+"""
+*Flask* app.
+
+APP : Flask 
+"""
+
+CACHE = Cache(config={'CACHE_TYPE': 'simple'})
+"""
+Global application responses cache.
+
+CACHE : Cache
+"""
+
+CACHE_DEFAULT_TIMEOUT = 60 * 24 * 7
+"""
+Cache responses timeout.
+
+CACHE_DEFAULT_TIMEOUT : int
+"""
+
 CACHE.init_app(APP)
 
 APP.config.update(
@@ -30,6 +79,21 @@ Compress(APP)
 
 
 def _null_to_None(data):
+    """
+    Converts *Javascript* originated *null* and *undefined* strings
+    to `None`. Non-matching data will be passed untouched.
+
+    Parameters
+    ----------
+    data : unicode
+        Data to convert.
+
+    Returns
+    -------
+    None or unicode
+        Converted data.
+    """
+
     if data in ('null', 'undefined'):
         return None
     else:
@@ -37,17 +101,41 @@ def _null_to_None(data):
 
 
 def _bool_to_bool(data):
+    """
+    Converts *Javascript* originated *true* and *false* strings
+    to `True` or `False`. Non-matching data will be passed untouched.
+
+    Parameters
+    ----------
+    data : unicode
+        Data to convert.
+
+    Returns
+    -------
+    True or False or unicode
+        Converted data.
+    """
+
     if data == 'true' or data is True:
         return True
     elif data == 'false' or data is False:
         return False
     else:
-        raise ValueError('Value must be "true" or "false"!')
+        return data
 
 
 @APP.route('/colourspace-models')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def colourspace_models_response():
+    """
+    Returns the colourspace models response.
+
+    Returns
+    -------
+    Response
+        Colourspace models response.
+    """
+
     json_data = colourspace_models()
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -59,6 +147,15 @@ def colourspace_models_response():
 @APP.route('/RGB-colourspaces')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def RGB_colourspaces_response():
+    """
+    Returns the RGB colourspaces response.
+
+    Returns
+    -------
+    Response
+        RGB colourspaces response.
+    """
+
     json_data = RGB_colourspaces()
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -70,6 +167,15 @@ def RGB_colourspaces_response():
 @APP.route('/RGB-colourspace-volume-visual')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def RGB_colourspace_volume_visual_response():
+    """
+    Returns a RGB colourspace volume visual response.
+
+    Returns
+    -------
+    Response
+         RGB colourspace volume visual response.
+    """
+
     args = request.args
     json_data = RGB_colourspace_volume_visual(
         colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
@@ -87,6 +193,15 @@ def RGB_colourspace_volume_visual_response():
 @APP.route('/spectral-locus-visual')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def spectral_locus_visual_response():
+    """
+    Returns a spectral locus visual response.
+
+    Returns
+    -------
+    Response
+        Spectral locus visual response.
+    """
+
     args = request.args
     json_data = spectral_locus_visual(
         colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
@@ -102,6 +217,15 @@ def spectral_locus_visual_response():
 @APP.route('/RGB-image-scatter-visual/<image>')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def RGB_image_scatter_visual_response(image):
+    """
+    Returns a RGB image scatter visual response.
+
+    Returns
+    -------
+    Response
+        RGB image scatter visual response.
+    """
+
     path = os.path.join(os.getcwd(), 'static', 'images', image)
 
     args = request.args
@@ -124,13 +248,21 @@ def RGB_image_scatter_visual_response(image):
     response = Response(json_data, status=200, mimetype='application/json')
     response.headers['X-Content-Length'] = len(json_data)
 
-
     return response
 
 
 @APP.route('/image-data/<image>')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def image_data_response(image):
+    """
+    Returns an image data response.
+
+    Returns
+    -------
+    Response
+        Image data response.
+    """
+
     path = os.path.join(os.getcwd(), 'static', 'images', image)
 
     args = request.args
@@ -155,6 +287,15 @@ def image_data_response(image):
 
 @APP.route('/')
 def index():
+    """
+    Returns the index response.
+
+    Returns
+    -------
+    Response
+        Index response.
+    """
+
     return render_template('index.html')
 
 

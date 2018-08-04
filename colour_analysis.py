@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+Colour - Analysis
+=================
+
+Defines various objects that typically output the geometry as JSON to be
+loaded by "Three.js".
+"""
+
 from __future__ import division
 
 import json
@@ -9,16 +18,52 @@ from werkzeug.contrib.cache import SimpleCache
 from colour import RGB_COLOURSPACES, RGB_to_XYZ, read_image
 from colour.models import (XYZ_to_colourspace_model, XYZ_to_RGB, RGB_to_RGB,
                            oetf_reverse_sRGB)
-from colour.plotting import (COLOUR_STYLE_CONSTANTS, filter_cmfs,
-                             filter_RGB_colourspaces)
+from colour.plotting import filter_cmfs, filter_RGB_colourspaces
 from colour.utilities import first_item, normalise_maximum, tsplit, tstack
 
+__author__ = 'Colour Developers'
+__copyright__ = 'Copyright (C) 2018 - Colour Developers'
+__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
+__maintainer__ = 'Colour Developers'
+__email__ = 'colour-science@googlegroups.com'
+__status__ = 'Production'
+
+__all__ = [
+    'LINEAR_FILE_FORMATS', 'DEFAULT_FLOAT_DTYPE', 'COLOURSPACE_MODELS',
+    'COLOURSPACE_MODELS_LABELS', 'PRIMARY_COLOURSPACE',
+    'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE', 'COLOURSPACE_MODEL',
+    'IMAGE_CACHE', 'load_image', 'colourspace_model_axis_reorder',
+    'colourspace_model_faces_reorder', 'colourspace_models',
+    'RGB_colourspaces', 'buffer_geometry', 'create_plane', 'create_box',
+    'RGB_colourspace_volume_visual', 'spectral_locus_visual',
+    'RGB_image_scatter_visual', 'image_data'
+]
+
 LINEAR_FILE_FORMATS = ('.exr', '.hdr')
+"""
+Assumed linear image formats.
+
+LINEAR_IMAGE_FORMATS : tuple
+"""
 
 DEFAULT_FLOAT_DTYPE = np.float16
+"""
+Default floating point number dtype. Float16 is chosen over Float32 because it
+is lighter and thus more adapted to send data from the server to client.
+
+DEFAULT_FLOAT_DTYPE : type
+"""
 
 COLOURSPACE_MODELS = ('CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS',
                       'CIE UVW', 'IPT', 'Hunter Lab', 'Hunter Rdab')
+"""
+Reference colourspace models defining available colour transformations from
+CIE XYZ tristimulus values.
+
+COLOURSPACE_MODELS : tuple
+    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'IPT',
+    'Hunter Lab', 'Hunter Rdab'}**
+"""
 
 COLOURSPACE_MODELS_LABELS = {
     'CIE XYZ': ('X', 'Y', 'Z'),
@@ -31,19 +76,69 @@ COLOURSPACE_MODELS_LABELS = {
     'Hunter Lab': ('a', 'L', 'b'),
     'Hunter Rdab': ('a', 'Rd', 'b')
 }
+"""
+Reference colourspace models axes labels, ordered so that luminance is on *Y*
+axis.
+
+COLOURSPACE_MODELS : dict
+    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'IPT',
+    'Hunter Lab', 'Hunter Rdab'}**
+"""
 
 PRIMARY_COLOURSPACE = 'sRGB'
+"""
+Primary analysis RGB colourspace.
+
+PRIMARY_COLOURSPACE : unicode
+"""
 
 SECONDARY_COLOURSPACE = 'DCI-P3'
+"""
+Secondary analysis RGB colourspace.
+
+SECONDARY_COLOURSPACE : unicode
+"""
 
 IMAGE_COLOURSPACE = 'Primary'
+"""
+Analysed image RGB colourspace either *Primary* or *Secondary*.
+
+IMAGE_COLOURSPACE : unicode
+"""
 
 COLOURSPACE_MODEL = 'CIE xyY'
+"""
+Analysis colour model.
 
-IMAGE_CACHE = SimpleCache(default_timeout=1440)
+COLOURSPACE_MODEL : unicode
+    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'IPT',
+    'Hunter Lab', 'Hunter Rdab'}**
+"""
+
+IMAGE_CACHE = SimpleCache(default_timeout=60 * 24 * 7)
+"""
+Server side cache for images.
+
+IMAGE_CACHE : SimpleCache
+"""
 
 
 def load_image(path):
+    """
+    Loads the image at given path and caches it in `IMAGE_CACHE` cache. If the
+    image is already cached, it is returned directly.
+
+    Parameters
+    ----------
+    path : unicode
+        Image path.
+
+    Returns
+    -------
+    ndarray
+        Image as a ndarray.
+    """
+
     RGB = IMAGE_CACHE.get(path)
     if RGB is None:
         RGB = read_image(path)
@@ -55,6 +150,25 @@ def load_image(path):
 
 
 def colourspace_model_axis_reorder(a, model=None):
+    """
+    Reorder the axes of given colourspace model :math:`a` array so that
+    luminance is on *Y* axis.
+
+    Parameters
+    ----------
+    a : array_like
+        Colourspace model :math:`a` array.
+    model : unicode, optional
+        **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
+        'IPT', 'Hunter Lab', 'Hunter Rdab'}**
+        Colourspace model.
+
+    Returns
+    -------
+    ndarray
+        Reordered colourspace model :math:`a` array.
+    """
+
     i, j, k = tsplit(a)
     if model in ('CIE XYZ', ):
         a = tstack((k, j, i))
@@ -68,6 +182,24 @@ def colourspace_model_axis_reorder(a, model=None):
 
 
 def colourspace_model_faces_reorder(a, model=None):
+    """
+    Reorder the faces of given colourspace model :math:`a` array.
+
+    Parameters
+    ----------
+    a : array_like
+        Colourspace model :math:`a` array.
+    model : unicode, optional
+        **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
+        'IPT', 'Hunter Lab', 'Hunter Rdab'}**
+        Colourspace model.
+
+    Returns
+    -------
+    Figure
+        Reordered colourspace model :math:`a` array.
+    """
+
     if model in ('CIE XYZ', ):
         a = a[::-1]
 
@@ -75,14 +207,49 @@ def colourspace_model_faces_reorder(a, model=None):
 
 
 def colourspace_models():
+    """
+    Returns the colourspace models formatted as *JSON*.
+
+    Returns
+    -------
+    unicode
+        Colourspace models formatted as *JSON*.
+    """
+
     return json.dumps(COLOURSPACE_MODELS_LABELS)
 
 
 def RGB_colourspaces():
+    """
+    Returns the RGB colourspaces formatted as *JSON*.
+
+    Returns
+    -------
+    unicode
+        RGB colourspaces formatted as *JSON*.
+    """
+
     return json.dumps(RGB_COLOURSPACES.keys())
 
 
 def buffer_geometry(**kwargs):
+    """
+    Returns given geometry formatted as *JSON* compatible with *Three.js*
+    `BufferGeometryLoader <https://threejs.org/docs/#api/loaders/\
+BufferGeometryLoader>`_.
+
+    Other Parameters
+    ----------------
+    \**kwargs : dict, optional
+        Valid attributes from `BufferGeometryLoader <https://threejs.org/docs/\
+#api/loaders/BufferGeometryLoader>`_.
+
+    Returns
+    -------
+    unicode
+        Geometry formatted as *JSON*.
+    """
+
     data = {
         'metadata': {
             'version': 4,
@@ -128,19 +295,19 @@ def create_plane(width=1,
                  height_segments=1,
                  direction='+z'):
     """
-    Generates vertices & indices for a filled and outlined plane.
+    Generates vertices and indices for a filled and outlined plane.
 
     Parameters
     ----------
-    width : float
+    width : float, optional
         Plane width.
-    height : float
+    height : float, optional
         Plane height.
-    width_segments : int
+    width_segments : int, optional
         Plane segments count along the width.
-    height_segments : float
+    height_segments : float, optional
         Plane segments count along the height.
-    direction: unicode
+    direction: unicode, optional
         ``{'-x', '+x', '-y', '+y', '-z', '+z'}``
         Direction the plane will be facing.
 
@@ -165,10 +332,10 @@ def create_plane(width=1,
     x_grid1 = x_grid + 1
     y_grid1 = y_grid + 1
 
-    # Positions, normals and texcoords.
+    # Positions, normals and uvs.
     positions = np.zeros(x_grid1 * y_grid1 * 3)
     normals = np.zeros(x_grid1 * y_grid1 * 3)
-    texcoords = np.zeros(x_grid1 * y_grid1 * 2)
+    uvs = np.zeros(x_grid1 * y_grid1 * 2)
 
     y = np.arange(y_grid1) * height / y_grid - height / 2
     x = np.arange(x_grid1) * width / x_grid - width / 2
@@ -178,8 +345,8 @@ def create_plane(width=1,
 
     normals[2::3] = 1
 
-    texcoords[::2] = np.tile(np.arange(x_grid1) / x_grid, y_grid1)
-    texcoords[1::2] = np.repeat(1 - np.arange(y_grid1) / y_grid, x_grid1)
+    uvs[::2] = np.tile(np.arange(x_grid1) / x_grid, y_grid1)
+    uvs[1::2] = np.repeat(1 - np.arange(y_grid1) / y_grid, x_grid1)
 
     # Faces and outline.
     faces, outline = [], []
@@ -194,7 +361,7 @@ def create_plane(width=1,
             outline.extend(((a, b), (b, c), (c, d), (d, a)))
 
     positions = np.reshape(positions, (-1, 3))
-    texcoords = np.reshape(texcoords, (-1, 2))
+    uvs = np.reshape(uvs, (-1, 2))
     normals = np.reshape(normals, (-1, 3))
 
     faces = np.reshape(faces, (-1, 3)).astype(np.uint32)
@@ -219,12 +386,11 @@ def create_plane(width=1,
     colors[..., neutral_axis] = 0
 
     vertices = np.zeros(positions.shape[0],
-                        [('position', np.float32, 3),
-                         ('texcoord', np.float32, 2),
+                        [('position', np.float32, 3), ('uv', np.float32, 2),
                          ('normal', np.float32, 3), ('colour', np.float32, 4)])
 
     vertices['position'] = positions
-    vertices['texcoord'] = texcoords
+    vertices['uv'] = uvs
     vertices['normal'] = normals
     vertices['colour'] = colors
 
@@ -239,23 +405,23 @@ def create_box(width=1,
                depth_segments=1,
                planes=None):
     """
-    Generates vertices & indices for a filled and outlined box.
+    Generates vertices and indices for a filled and outlined box.
 
     Parameters
     ----------
-    width : float
+    width : float, optional
         Box width.
-    height : float
+    height : float, optional
         Box height.
-    depth : float
+    depth : float, optional
         Box depth.
-    width_segments : int
+    width_segments : int, optional
         Box segments count along the width.
-    height_segments : float
+    height_segments : float, optional
         Box segments count along the height.
-    depth_segments : float
+    depth_segments : float, optional
         Box segments count along the depth.
-    planes: array_like
+    planes: array_like, optional
         Any combination of ``{'-x', '+x', '-y', '+y', '-z', '+z'}``
         Included planes in the box construction.
 
@@ -300,7 +466,7 @@ def create_box(width=1,
         planes_m[-1][0]['position'][..., 0] += width / 2
 
     positions = np.zeros((0, 3), dtype=np.float32)
-    texcoords = np.zeros((0, 2), dtype=np.float32)
+    uvs = np.zeros((0, 2), dtype=np.float32)
     normals = np.zeros((0, 3), dtype=np.float32)
 
     faces = np.zeros((0, 3), dtype=np.uint32)
@@ -309,7 +475,7 @@ def create_box(width=1,
     offset = 0
     for vertices_p, faces_p, outline_p in planes_m:
         positions = np.vstack((positions, vertices_p['position']))
-        texcoords = np.vstack((texcoords, vertices_p['texcoord']))
+        uvs = np.vstack((uvs, vertices_p['uv']))
         normals = np.vstack((normals, vertices_p['normal']))
 
         faces = np.vstack((faces, faces_p + offset))
@@ -317,8 +483,7 @@ def create_box(width=1,
         offset += vertices_p['position'].shape[0]
 
     vertices = np.zeros(positions.shape[0],
-                        [('position', np.float32, 3),
-                         ('texcoord', np.float32, 2),
+                        [('position', np.float32, 3), ('uv', np.float32, 2),
                          ('normal', np.float32, 3), ('colour', np.float32, 4)])
 
     colors = np.ravel(positions)
@@ -327,7 +492,7 @@ def create_box(width=1,
         positions.shape), np.ones((positions.shape[0], 1))))
 
     vertices['position'] = positions
-    vertices['texcoord'] = texcoords
+    vertices['uv'] = uvs
     vertices['normal'] = normals
     vertices['colour'] = colors
 
@@ -338,6 +503,27 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
                                   colourspace_model=COLOURSPACE_MODEL,
                                   segments=16,
                                   wireframe=False):
+    """
+    Returns a RGB colourspace volume visual geometry formatted as *JSON*.
+
+    Parameters
+    ----------
+    colourspace : unicode, optional
+        RGB colourspace used to generate the visual geometry.
+    colourspace_model : unicode, optional
+        Colourspace model used to generate the visual geometry.
+    segments : int, optional
+        Segments count per side of the *box* used to generate the visual
+        geometry.
+    wireframe : bool, optional
+        Whether the visual geometry must represent a wireframe visual.
+
+    Returns
+    -------
+    unicode
+        RGB colourspace volume visual geometry formatted as *JSON*.
+    """
+
     colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
 
@@ -364,6 +550,24 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
 def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
                           colourspace_model=COLOURSPACE_MODEL,
                           cmfs='CIE 1931 2 Degree Standard Observer'):
+    """
+    Returns the spectral locus visual geometry formatted as *JSON*.
+
+    Parameters
+    ----------
+    colourspace : unicode, optional
+        RGB colourspace used to generate the visual geometry.
+    colourspace_model : unicode, optional
+        Colourspace model used to generate the visual geometry.
+    cmfs : unicode, optional
+        Standard observer colour matching functions used to draw the spectral
+        locus.
+
+    Returns
+    -------
+    unicode
+        Spectral locus visual geometry formatted as *JSON*.
+    """
 
     colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
@@ -395,6 +599,42 @@ def RGB_image_scatter_visual(path,
                              out_of_secondary_colourspace_gamut=False,
                              sub_sampling=25,
                              saturate=False):
+    """
+    Returns a RGB image scatter visual geometry formatted as *JSON* for
+    given image.
+
+    Parameters
+    ----------
+    path : unicode
+        Server side path of the image to read to generate the scatter points.
+    primary_colourspace : unicode, optional
+        Primary RGB colourspace used to generate the visual geometry.
+    secondary_colourspace: unicode, optional
+        Secondary RGB colourspace used to generate the visual geometry.
+    image_colourspace: unicode, optional
+        **{'Primary', 'Secondary'}**,
+        Analysed image RGB colourspace.
+    colourspace_model : unicode, optional
+        Colourspace model used to generate the visual geometry.
+    out_of_primary_colourspace_gamut : bool, optional
+        Whether to only generate the out of primary RGB colourspace gamut
+        visual geometry.
+    out_of_secondary_colourspace_gamut : bool, optional
+        Whether to only generate the out of secondary RGB colourspace gamut
+        visual geometry.
+    sub_sampling : int, optional
+        Consider every ``sub_sampling`` pixels of the image to generate the
+        visual geometry. Using a low number will yield a large quantity of
+        points, e.g. *1* yields *2073600* points for a *1080p* image.
+    saturate : bool, optional
+        Whether to clip the image in domain [0, 1].
+
+    Returns
+    -------
+    unicode
+        RGB image scatter visual geometry formatted as *JSON*.
+    """
+
     primary_colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(
             re.escape(primary_colourspace))))
@@ -448,15 +688,42 @@ def image_data(path,
                out_of_primary_colourspace_gamut=False,
                out_of_secondary_colourspace_gamut=False,
                saturate=False):
+    """
+    Returns given image RGB data or its out of gamut values formatted as
+    *JSON*.
+
+    Parameters
+    ----------
+    path : unicode
+        Server side path of the image to read.
+    primary_colourspace : unicode, optional
+        Primary RGB colourspace used to generate out of gamut values.
+    secondary_colourspace: unicode, optional
+        Secondary RGB colourspace used to generate out of gamut values.
+    image_colourspace: unicode, optional
+        **{'Primary', 'Secondary'}**,
+        Analysed image RGB colourspace.
+    out_of_primary_colourspace_gamut : bool, optional
+        Whether to only generate the out of primary RGB colourspace gamut
+        values.
+    out_of_secondary_colourspace_gamut : bool, optional
+        Whether to only generate the out of secondary RGB colourspace gamut
+        value.
+    saturate : bool, optional
+        Whether to clip the image in domain [0, 1].
+
+    Returns
+    -------
+    unicode
+        RGB image data or its out of gamut values formatted as *JSON*.
+    """
+
     primary_colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(
             re.escape(primary_colourspace))))
     secondary_colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(
             re.escape(secondary_colourspace))))
-
-    colourspace = (primary_colourspace if image_colourspace == 'Primary' else
-                   secondary_colourspace)
 
     RGB = load_image(path)
 
