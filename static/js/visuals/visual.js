@@ -90,12 +90,15 @@ class Visual {
 
         var route = this.route();
 
+        this._loading = true;
+
         if (route in this._cache) {
             this._visual = this._cache[route];
 
             this._parent.add(this._visual);
+
+            this._loading = false;
         } else {
-            this._loading = true;
 
             this.fetch(route);
         }
