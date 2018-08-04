@@ -4,7 +4,7 @@ class ImageScatterVisual extends Visual {
     constructor(parent, settings) {
         super(parent, { ...{ name: 'image-scatter-visual' }, ...settings });
 
-        this._image = settings.image || 'SonyF35-StillLife.sRGB.exr';
+        this._image = settings.image || 'Rose.ProPhoto.jpg';
         this._primaryColourspace = settings.primaryColourspace || 'sRGB';
         this._secondaryColourspace = settings.secondaryColourspace || 'DCI-P3';
         this._imageColourspace = settings.imageColourspace || 'Primary';

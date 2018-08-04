@@ -6,6 +6,7 @@ class Visual {
 
         this._name = settings.name || 'visual';
         this._visible = settings.visible || true;
+        this._loadingCallback = settings.loadingCallback || loadingCallback;
 
         this._cache = {};
 
@@ -47,6 +48,13 @@ class Visual {
                 this._cache[key].visible = value;
             }.bind(this)
         );
+    }
+    get loadingCallback() {
+        return this._loadingCallback;
+    }
+
+    set loadingCallback(value) {
+        this._loadingCallback = value;
     }
 
     get cache() {
@@ -99,7 +107,6 @@ class Visual {
 
             this._loading = false;
         } else {
-
             this.fetch(route);
         }
     }
@@ -122,7 +129,8 @@ class Visual {
 
                 this._loading = false;
             }.bind(this),
-            loadingCallback.bind(this)
+
+            this._loadingCallback.bind(this)
         );
     }
 }

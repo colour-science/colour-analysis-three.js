@@ -27,7 +27,12 @@ class GamutView extends PerspectiveView {
                     colorCenterLine: '#111111',
                     colorGrid: '#222222'
                 },
-                axes: { enable: true }
+                axes: { enable: true },
+                image: 'Rose.ProPhoto.jpg',
+                colourspaceModel: 'CIE xyY',
+                primaryColourspace: 'sRGB',
+                secondaryColourspace: 'DCI-P3',
+                imageColourspace: 'Primary'
             },
             ...settings
         };
@@ -68,12 +73,11 @@ class GamutView extends PerspectiveView {
             this.scene.add(this.axes);
         }
 
-        this._colourspaceModel = 'CIE xyY';
-
-        this._primaryColourspace = 'sRGB';
-        this._secondaryColourspace = 'DCI-P3';
-
-        this._imageColourspace = 'Primary';
+        this._image = settings.image;
+        this._colourspaceModel = settings.colourspaceModel;
+        this._primaryColourspace = settings.primaryColourspace;
+        this._secondaryColourspace = settings.secondaryColourspace;
+        this._imageColourspace = settings.imageColourspace;
 
         this._viewAxesVisual = undefined;
 
@@ -105,6 +109,22 @@ class GamutView extends PerspectiveView {
             'image-scatter-overlay-visual-group';
         this._scene.add(this._imageScatterOverlayVisualGroup);
         this._imageScatterOverlayVisual = undefined;
+    }
+
+    get image() {
+        return this._image;
+    }
+
+    set image(value) {
+        this._image = value;
+
+        if (this._imageScatterVisual != undefined) {
+            this._imageScatterVisual.image = value;
+        }
+
+        if (this._imageScatterOverlayVisual != undefined) {
+            this._imageScatterOverlayVisual.image = value;
+        }
     }
 
     get colourspaceModel() {
@@ -310,7 +330,7 @@ class GamutView extends PerspectiveView {
             this._imageScatterVisualGroup,
             {
                 ...{
-                    image: settings.image,
+                    image: this._image,
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
                     imageColourspace: this._imageColourspace,
@@ -328,7 +348,7 @@ class GamutView extends PerspectiveView {
             {
                 ...{
                     name: 'image-scatter-overlay-visual',
-                    image: settings.image,
+                    image: this._image,
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
                     imageColourspace: this._imageColourspace,

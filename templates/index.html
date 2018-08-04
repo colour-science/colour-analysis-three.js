@@ -130,26 +130,43 @@
         if (!Detector.webgl) Detector.addGetWebGLinfo();
 
         var image = 'Rose.ProPhoto.jpg';
+        var primaryColourspace = 'sRGB';
+        var secondaryColourspace = 'DCI-P3';
+        var imageColourspace = 'Primary';
 
-        var gamutView1 = new GamutView(document.getElementById('gamutView1'));
-        gamutView1.primaryColourspace = 'sRGB';
-        gamutView1.secondaryColourspace = 'DCI-P3';
-        gamutView1.imageColourspace = 'Primary';
+        var gamutView1 = new GamutView(
+            document.getElementById('gamutView1'),
+            {
+                image: image,
+                primaryColourspace: primaryColourspace,
+                secondaryColourspace: secondaryColourspace,
+                imageColourspace: imageColourspace
+            }
+        );
         gamutView1.addViewAxesVisual();
         gamutView1.addSpectralLocusVisual();
         gamutView1.addSecondaryColourspaceVisual();
         gamutView1.addPrimaryColourspaceVisual();
-        gamutView1.addImageScatterVisual({ image: image });
-        gamutView1.addImageScatterOverlayVisual({ image: image });
+        gamutView1.addImageScatterVisual();
+        gamutView1.addImageScatterOverlayVisual();
         gamutView1.animate();
 
-        var imageView1 = new ImageView(document.getElementById('imageView1'), {});
-        imageView1.addImageVisual({ image: image });
-        imageView1.addImageOverlayVisual({ image: image });
+        var imageView1 = new ImageView(
+            document.getElementById('imageView1'),
+            {
+                image: image,
+                primaryColourspace: primaryColourspace,
+                secondaryColourspace: secondaryColourspace,
+                imageColourspace: imageColourspace
+            }
+        );
+        imageView1.addImageVisual();
+        imageView1.addImageOverlayVisual();
         imageView1.animate();
 
         class Controls {
             constructor() {
+                this.image = [];
                 this.colourspaceModel = [];
 
                 this.primaryColourspace = gamutView1.primaryColourspace;
@@ -175,8 +192,31 @@
         }
 
         var controls = new Controls();
-        var gui = new dat.GUI({ width: 320 });
-        var colourspaceModelController = gui
+
+        var gui = new dat.GUI({ width: 360 });
+
+        // Overall
+        var overallFolder = gui.addFolder('Overall');
+        var imageController = overallFolder
+            .add(controls, 'image', [])
+            .name('Image');
+        var updateImageDropdown = updateDropdown.bind(
+            null,
+            controls,
+            'image',
+            imageController,
+            image
+        );
+        var loader = new THREE.FileLoader();
+        loader.setResponseType('json');
+
+        loader.load('/images', updateImageDropdown);
+        imageController.onChange(function (value) {
+            gamutView1.image = value;
+            imageView1.image = value;
+        });
+
+        var colourspaceModelController = overallFolder
             .add(controls, 'colourspaceModel', [])
             .name('Model');
         var updateColourspaceModelDropdown = updateDropdown.bind(
@@ -193,6 +233,56 @@
         colourspaceModelController.onChange(function (value) {
             gamutView1.colourspaceModel = value;
         });
+
+        var imageColourspaceController = overallFolder
+            .add(controls, 'imageColourspace', ['Primary', 'Secondary'])
+            .name('Colourspace')
+            .onChange(function (value) {
+                if (gamutView1.isLoading() || imageView1.isLoading()) {
+                    warning('A visual is already loading!');
+                    controls.imageColourspace = gamutView1.imageColourspace;
+                    secondaryColourspaceController.updateDisplay();
+                    return;
+                }
+
+                gamutView1.imageColourspace = value;
+                imageView1.imageColourspace = value;
+            });
+
+        var outOfPrimaryColourspaceGamutController = overallFolder
+            .add(controls, 'outOfPrimaryColourspaceGamut')
+            .name('Out of Primary Colourspace Gamut')
+            .onChange(function (value) {
+                if (gamutView1.isLoading() || imageView1.isLoading()) {
+                    warning('A visual is already loading!');
+                    controls.outOfPrimaryColourspaceGamut = gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut;
+                    outOfPrimaryColourspaceGamutController.updateDisplay();
+                    return;
+                }
+
+                gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut = value;
+                imageView1.imageOverlayVisual.outOfPrimaryColourspaceGamut = value;
+            });
+        var outOfSecondaryColourspaceGamutController = overallFolder
+            .add(controls, 'outOfSecondaryColourspaceGamut')
+            .name('Out of Secondary Colourspace Gamut')
+            .onChange(function (value) {
+                if (gamutView1.isLoading() || imageView1.isLoading()) {
+                    warning('A visual is already loading!');
+                    controls.outOfSecondaryColourspaceGamut = gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut;
+                    outOfSecondaryColourspaceGamutController.updateDisplay();
+                    return;
+                }
+
+                gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut = value;
+                imageView1.imageOverlayVisual.outOfSecondaryColourspaceGamut = value;
+            });
+        // imageScatterFolder
+        //     .add(controls, 'imageScatterVisualSaturate')
+        //     .name('Clamp')
+        //     .onChange(function (value) {
+        //         gamutView1.imageScatterVisual.saturate = value;
+        //     });
 
         // Primary Colourspace
         var primaryColourspaceFolder = gui.addFolder('Primary Colourspace');
@@ -280,23 +370,8 @@
             imageView1.secondaryColourspace = value;
         });
 
-        // Image & Scatter
-        var imageScatterFolder = gui.addFolder('Image & Scatter');
-        var imageColourspaceController = imageScatterFolder
-            .add(controls, 'imageColourspace', ['Primary', 'Secondary'])
-            .name('Gamut')
-            .onChange(function (value) {
-                if (gamutView1.isLoading() || imageView1.isLoading()) {
-                    warning('A visual is already loading!');
-                    controls.imageColourspace = gamutView1.imageColourspace;
-                    secondaryColourspaceController.updateDisplay();
-                    return;
-                }
-
-
-                gamutView1.imageColourspace = value;
-                imageView1.imageColourspace = value;
-            });
+        // Image Scatter
+        var imageScatterFolder = gui.addFolder('Image Scatter');
         imageScatterFolder
             .add(controls, 'imageScatterVisualVisible')
             .name('Visible')
@@ -318,42 +393,6 @@
                 gamutView1.imageScatterVisual.pointSize = value;
                 gamutView1.imageScatterOverlayVisual.pointSize = value;
             });
-        var outOfPrimaryColourspaceGamutController = imageScatterFolder
-            .add(controls, 'outOfPrimaryColourspaceGamut')
-            .name('Out of Primary Colourspace Gamut')
-            .onChange(function (value) {
-                if (gamutView1.isLoading() || imageView1.isLoading()) {
-                    warning('A visual is already loading!');
-                    controls.outOfPrimaryColourspaceGamut = gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut;
-                    outOfPrimaryColourspaceGamutController.updateDisplay();
-                    return;
-                }
-
-
-                gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut = value;
-                imageView1.imageOverlayVisual.outOfPrimaryColourspaceGamut = value;
-            });
-        var outOfSecondaryColourspaceGamutController = imageScatterFolder
-            .add(controls, 'outOfSecondaryColourspaceGamut')
-            .name('Out of Secondary Colourspace Gamut')
-            .onChange(function (value) {
-                if (gamutView1.isLoading() || imageView1.isLoading()) {
-                    warning('A visual is already loading!');
-                    controls.outOfSecondaryColourspaceGamut = gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut;
-                    outOfSecondaryColourspaceGamutController.updateDisplay();
-                    return;
-                }
-
-
-                gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut = value;
-                imageView1.imageOverlayVisual.outOfSecondaryColourspaceGamut = value;
-            });
-        // imageScatterFolder
-        //     .add(controls, 'imageScatterVisualSaturate')
-        //     .name('Clamp')
-        //     .onChange(function (value) {
-        //         gamutView1.imageScatterVisual.saturate = value;
-        //     });
 
         // Spectral Locus
         var spectralLocusFolder = gui.addFolder('Spectral Locus');

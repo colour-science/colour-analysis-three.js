@@ -6,6 +6,7 @@ Application
 
 from __future__ import division, unicode_literals
 
+import json
 import os
 from flask import Flask, Response, render_template, request
 from flask_caching import Cache
@@ -39,7 +40,8 @@ __version__ = '.'.join(
 
 
 __all__ = [
-    'APP', 'CACHE', 'CACHE_DEFAULT_TIMEOUT', 'colourspace_models_response',
+    'APP', 'CACHE', 'CACHE_DEFAULT_TIMEOUT', 'IMAGES_DIRECTORY',
+    'images_response', 'colourspace_models_response',
     'RGB_colourspaces_response', 'RGB_colourspace_volume_visual_response',
     'spectral_locus_visual_response', 'RGB_image_scatter_visual_response',
     'image_data_response', 'index'
@@ -76,6 +78,13 @@ APP.config.update(
 )
 
 Compress(APP)
+
+IMAGES_DIRECTORY = os.path.join(os.getcwd(), 'static', 'images')
+"""
+Images directory.
+
+IMAGES_DIRECTORY : unicode
+"""
 
 
 def _null_to_None(data):
@@ -122,6 +131,26 @@ def _bool_to_bool(data):
         return False
     else:
         return data
+
+
+@APP.route('/images')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
+def images_response():
+    """
+    Returns the images response.
+
+    Returns
+    -------
+    Response
+        Images response.
+    """
+
+    json_data = json.dumps(os.listdir(IMAGES_DIRECTORY))
+
+    response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
+
+    return response
 
 
 @APP.route('/colourspace-models')

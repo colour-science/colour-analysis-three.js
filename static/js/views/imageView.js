@@ -14,7 +14,12 @@ class ImageView extends OrthographicView {
                     background: new THREE.Color('#333333')
                 },
                 camera: { position: new THREE.Vector3(0, 1, 0) },
-                controls: { target: new THREE.Vector3(0, 0, 0) }
+                controls: { target: new THREE.Vector3(0, 0, 0) },
+                image: 'Rose.ProPhoto.jpg',
+                colourspaceModel: 'CIE xyY',
+                primaryColourspace: 'sRGB',
+                secondaryColourspace: 'DCI-P3',
+                imageColourspace: 'Primary'
             },
             ...settings
         };
@@ -26,12 +31,11 @@ class ImageView extends OrthographicView {
         this.camera.position.copy(settings.camera.position);
         this.controls.target = settings.controls.target;
 
-        this._colourspaceModel = 'CIE xyY';
-
-        this._primaryColourspace = 'sRGB';
-        this._secondaryColourspace = 'DCI-P3';
-
-        this._imageColourspace = 'Primary';
+        this._image = settings.image;
+        this._colourspaceModel = settings.colourspaceModel;
+        this._primaryColourspace = settings.primaryColourspace;
+        this._secondaryColourspace = settings.secondaryColourspace;
+        this._imageColourspace = settings.imageColourspace;
 
         // The following groups are defining the rendering order.
         this._imageVisualGroup = new THREE.Group();
@@ -43,6 +47,22 @@ class ImageView extends OrthographicView {
         this._imageOverlayVisualGroup.name = 'image-overlay-visual-group';
         this._scene.add(this._imageOverlayVisualGroup);
         this._imageOverlayVisual = undefined;
+    }
+
+    get image() {
+        return this._image;
+    }
+
+    set image(value) {
+        this._image = value;
+
+        if (this._imageVisual != undefined) {
+            this._imageVisual.image = value;
+        }
+
+        if (this._imageOverlayVisual != undefined) {
+            this._imageOverlayVisual.image = value;
+        }
     }
 
     get colourspaceModel() {
@@ -116,7 +136,7 @@ class ImageView extends OrthographicView {
         this._imageVisual = new ImageVisual(this._imageVisualGroup, {
             ...{
                 name: 'image-visual',
-                image: settings.image,
+                image: this._image,
                 primaryColourspace: this._primaryColourspace,
                 secondaryColourspace: this._secondaryColourspace,
                 imageColourspace: this._imageColourspace
@@ -132,7 +152,7 @@ class ImageView extends OrthographicView {
             {
                 ...{
                     name: 'image-overlay-visual',
-                    image: settings.image,
+                    image: this._image,
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
                     imageColourspace: this._imageColourspace,
