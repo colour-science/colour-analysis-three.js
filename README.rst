@@ -1,6 +1,8 @@
 Colour - Analysis
 =================
 
+..  image:: https://www.colour-science.org/images/Colour_-_Analysis_-_Three.js.png
+
 Introduction
 ------------
 
@@ -9,6 +11,35 @@ and `Three.js <https://github.com/mrdoob/three.js/>`_.
 
 Installation
 ------------
+
+Pull
+~~~~
+
+.. code-block:: bash
+
+    $ docker pull colourscience/colour-analysis
+
+Run
+~~~
+
+.. code-block:: bash
+
+    $ docker run -d \
+    --name=colour-analysis \
+    -v $IMAGES_DIRECTORY:/home/colour-analysis/static/images
+    -p 8020:5000 colourscience/colour-analysis
+
+Development
+-----------
+
+.. code-block:: bash
+
+    $ conda create -y -n python-colour-analysis
+    $ source activate python-colour-analysis
+    $ conda install -y -c conda-forge colour-science
+    $ conda install flask invoke matplotlib
+    $ pip install git+git://github.com/colour-science/flask-compress@feature/cache
+    $ python app.py
 
 About
 -----
