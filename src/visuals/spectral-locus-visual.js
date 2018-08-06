@@ -1,4 +1,5 @@
 import { Visual } from './visual.js';
+import { serverRoute } from '../common.js';
 
 class SpectralLocusVisual extends Visual {
     constructor(parent, settings) {
@@ -51,7 +52,7 @@ class SpectralLocusVisual extends Visual {
     }
 
     route() {
-        return (
+        return serverRoute(
             `/spectral-locus-visual?` +
             `colourspace=${encodeURIComponent(this._colourspace)}&` +
             `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&`

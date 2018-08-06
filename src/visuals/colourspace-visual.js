@@ -1,4 +1,5 @@
 import { Visual } from './visual.js';
+import { serverRoute } from '../common.js';
 
 class ColourspaceVisual extends Visual {
     constructor(parent, settings) {
@@ -93,7 +94,7 @@ class ColourspaceVisual extends Visual {
     }
 
     route() {
-        return (
+        return serverRoute(
             `/RGB-colourspace-volume-visual?` +
             `colourspace=${encodeURIComponent(this._colourspace)}&` +
             `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&` +

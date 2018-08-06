@@ -1,5 +1,5 @@
 import { Visual } from './visual.js';
-import { loadingCallback } from '../common.js';
+import { loadingCallback, serverRoute } from '../common.js';
 
 class ImageVisual extends Visual {
     constructor(parent, settings) {
@@ -110,7 +110,7 @@ class ImageVisual extends Visual {
     }
 
     route() {
-        return (
+        return serverRoute(
             `/image-data/${encodeURIComponent(this._image)}?` +
             `primaryColourspace=${encodeURIComponent(
                 this._primaryColourspace

@@ -44,7 +44,7 @@ __all__ = [
     'images_response', 'colourspace_models_response',
     'RGB_colourspaces_response', 'RGB_colourspace_volume_visual_response',
     'spectral_locus_visual_response', 'RGB_image_scatter_visual_response',
-    'image_data_response', 'index'
+    'image_data_response', 'index', 'after_request'
 ]
 
 APP = Flask(__name__)
@@ -333,6 +333,19 @@ def index():
         primary_colourspace=PRIMARY_COLOURSPACE,
         secondary_colourspace=SECONDARY_COLOURSPACE,
         image_colourspace=IMAGE_COLOURSPACE)
+
+
+@APP.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers',
+                         'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods',
+                         'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Expose-Headers',
+                         'X-Content-Length')
+
+    return response
 
 
 if __name__ == '__main__':

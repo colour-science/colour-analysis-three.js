@@ -1,4 +1,5 @@
 import { Visual } from './visual.js';
+import { serverRoute } from '../common.js';
 
 class ImageScatterVisual extends Visual {
     constructor(parent, settings) {
@@ -153,7 +154,7 @@ class ImageScatterVisual extends Visual {
     }
 
     route() {
-        return (
+        return serverRoute(
             `/RGB-image-scatter-visual/${this._image}?` +
             `primaryColourspace=${encodeURIComponent(
                 this._primaryColourspace

@@ -140,12 +140,15 @@
         var secondaryColourspace = '{{ secondary_colourspace }}';
         var imageColourspace = '{{ image_colourspace }}';
 
-        var gamutView1 = new ColourAnalysis.GamutView(document.getElementById('gamutView1'), {
-            image: image,
-            primaryColourspace: primaryColourspace,
-            secondaryColourspace: secondaryColourspace,
-            imageColourspace: imageColourspace
-        });
+        var gamutView1 = new ColourAnalysis.GamutView(
+            document.getElementById('gamutView1'),
+            {
+                image: image,
+                primaryColourspace: primaryColourspace,
+                secondaryColourspace: secondaryColourspace,
+                imageColourspace: imageColourspace
+            }
+        );
         gamutView1.addViewAxesVisual();
         gamutView1.addSpectralLocusVisual();
         gamutView1.addSecondaryColourspaceVisual();
@@ -154,12 +157,15 @@
         gamutView1.addImageScatterOverlayVisual();
         gamutView1.animate();
 
-        var imageView1 = new ColourAnalysis.ImageView(document.getElementById('imageView1'), {
-            image: image,
-            primaryColourspace: primaryColourspace,
-            secondaryColourspace: secondaryColourspace,
-            imageColourspace: imageColourspace
-        });
+        var imageView1 = new ColourAnalysis.ImageView(
+            document.getElementById('imageView1'),
+            {
+                image: image,
+                primaryColourspace: primaryColourspace,
+                secondaryColourspace: secondaryColourspace,
+                imageColourspace: imageColourspace
+            }
+        );
         imageView1.addImageVisual();
         imageView1.addImageOverlayVisual();
         imageView1.animate();
@@ -210,7 +216,7 @@
         var loader = new THREE.FileLoader();
         loader.setResponseType('json');
 
-        loader.load('/images', updateImageDropdown);
+        loader.load(ColourAnalysis.serverRoute('/images'), updateImageDropdown);
         imageController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 ColourAnalysis.warning('A visual is already loading!');
@@ -241,7 +247,10 @@
         var loader = new THREE.FileLoader();
         loader.setResponseType('json');
 
-        loader.load('/colourspace-models', updateColourspaceModelDropdown);
+        loader.load(
+            ColourAnalysis.serverRoute('/colourspace-models'),
+            updateColourspaceModelDropdown
+        );
         colourspaceModelController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 ColourAnalysis.warning('A visual is already loading!');
@@ -267,7 +276,9 @@
                     ColourAnalysis.warning('A visual is already loading!');
                     controls.imageColourspace = gamutView1.imageColourspace;
 
-                    var keys = ColourAnalysis.dropdownOptions(imageColourspaceController);
+                    var keys = ColourAnalysis.dropdownOptions(
+                        imageColourspaceController
+                    );
                     imageColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
                         controls.imageColourspace
                     );
@@ -348,7 +359,10 @@
             primaryColourspaceController,
             gamutView1.primaryColourspace
         );
-        loader.load('/RGB-colourspaces', updatePrimaryColourspaceDropdown);
+        loader.load(
+            ColourAnalysis.serverRoute('/RGB-colourspaces'),
+            updatePrimaryColourspaceDropdown
+        );
         primaryColourspaceController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 ColourAnalysis.warning('A visual is already loading!');
@@ -395,13 +409,18 @@
             secondaryColourspaceController,
             gamutView1.secondaryColourspace
         );
-        loader.load('/RGB-colourspaces', updateSecondaryColourspaceDropdown);
+        loader.load(
+            ColourAnalysis.serverRoute('/RGB-colourspaces'),
+            updateSecondaryColourspaceDropdown
+        );
         secondaryColourspaceController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 ColourAnalysis.warning('A visual is already loading!');
                 controls.secondaryColourspace = gamutView1.secondaryColourspace;
 
-                var keys = ColourAnalysis.dropdownOptions(secondaryColourspaceController);
+                var keys = ColourAnalysis.dropdownOptions(
+                    secondaryColourspaceController
+                );
                 secondaryColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
                     controls.secondaryColourspace
                 );

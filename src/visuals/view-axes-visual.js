@@ -1,5 +1,5 @@
 import { Visual } from './visual.js';
-import { rotateToWorld, loadingCallback } from '../common.js';
+import { loadingCallback, rotateToWorld, serverRoute } from '../common.js';
 
 class ViewAxesVisual extends Visual {
     constructor(view, settings) {
@@ -28,9 +28,11 @@ class ViewAxesVisual extends Visual {
     }
 
     route() {
-        return `/colourspace-models?colourspaceModel=${encodeURIComponent(
-            this._colourspaceModel
-        )}`;
+        return serverRoute(
+            `/colourspace-models?colourspaceModel=${encodeURIComponent(
+                this._colourspaceModel
+            )}`
+        );
     }
 
     create(json) {

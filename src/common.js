@@ -1,3 +1,11 @@
+function serverRoute(route) {
+    if (window.colourAnalysisServer == undefined) {
+        return route;
+    } else {
+        return `${window.colourAnalysisServer}${route}`;
+    }
+}
+
 function removeObjectByName(scene, name) {
     while (scene.getObjectByName(name) != undefined) {
         var object = scene.getObjectByName(name);
@@ -102,6 +110,7 @@ function loadingCallback(xhr) {
 }
 
 export {
+    serverRoute,
     removeObjectByName,
     rotateToWorld,
     fadeElement,
