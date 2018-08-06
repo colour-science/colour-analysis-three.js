@@ -1,5 +1,5 @@
-import { OrthographicView } from './orthographicView.js';
-import { ImageVisual } from '../visuals/imageVisual.js';
+import { OrthographicView } from './orthographic-view.js';
+import { ImageVisual } from '../visuals/image-visual.js';
 
 class ImageView extends OrthographicView {
     constructor(container, settings) {

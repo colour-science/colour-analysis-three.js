@@ -38,6 +38,7 @@
             display: flex;
             flex-direction: row;
             height: 100%;
+            overflow-x: hidden;
         }
 
         .box .row.footer {
@@ -130,19 +131,8 @@
     <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/TrackballControls.js"></script>
     <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/Detector.js"></script>
     <script src="https://cdn.rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
-    <script type="module">
-
-        import { GamutView } from "{{ url_for('static', filename = 'js/views/gamutView.js') }}";
-        import { ImageView } from "{{ url_for('static', filename = 'js/views/imageView.js') }}";
-        import {
-            updateDropdown,
-            dropdownOptions
-        } from "{{ url_for('static', filename = 'js/gui.js') }}";
-        import {
-            info,
-            warning
-        } from "{{ url_for('static', filename = 'js/common.js') }}";
-
+    <script src="{{ colour_analysis_js }}"></script>
+    <script type="text/javascript">
         if (!Detector.webgl) Detector.addGetWebGLinfo();
 
         var image = '{{ image }}';
@@ -150,7 +140,7 @@
         var secondaryColourspace = '{{ secondary_colourspace }}';
         var imageColourspace = '{{ image_colourspace }}';
 
-        var gamutView1 = new GamutView(document.getElementById('gamutView1'), {
+        var gamutView1 = new ColourAnalysis.GamutView(document.getElementById('gamutView1'), {
             image: image,
             primaryColourspace: primaryColourspace,
             secondaryColourspace: secondaryColourspace,
@@ -164,7 +154,7 @@
         gamutView1.addImageScatterOverlayVisual();
         gamutView1.animate();
 
-        var imageView1 = new ImageView(document.getElementById('imageView1'), {
+        var imageView1 = new ColourAnalysis.ImageView(document.getElementById('imageView1'), {
             image: image,
             primaryColourspace: primaryColourspace,
             secondaryColourspace: secondaryColourspace,
@@ -210,7 +200,7 @@
 
         // Image
         var imageController = overallFolder.add(controls, 'image', []).name('Image');
-        var updateImageDropdown = updateDropdown.bind(
+        var updateImageDropdown = ColourAnalysis.updateDropdown.bind(
             null,
             controls,
             'image',
@@ -223,10 +213,10 @@
         loader.load('/images', updateImageDropdown);
         imageController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
-                warning('A visual is already loading!');
+                ColourAnalysis.warning('A visual is already loading!');
                 controls.image = gamutView1.image;
 
-                var keys = dropdownOptions(imageController);
+                var keys = ColourAnalysis.dropdownOptions(imageController);
                 imageController.domElement.children[0].selectedIndex = keys.indexOf(
                     controls.image
                 );
@@ -241,7 +231,7 @@
         var colourspaceModelController = overallFolder
             .add(controls, 'colourspaceModel', [])
             .name('Model');
-        var updateColourspaceModelDropdown = updateDropdown.bind(
+        var updateColourspaceModelDropdown = ColourAnalysis.updateDropdown.bind(
             null,
             controls,
             'colourspaceModel',
@@ -254,10 +244,10 @@
         loader.load('/colourspace-models', updateColourspaceModelDropdown);
         colourspaceModelController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
-                warning('A visual is already loading!');
+                ColourAnalysis.warning('A visual is already loading!');
                 controls.colourspaceModel = gamutView1.colourspaceModel;
 
-                var keys = dropdownOptions(colourspaceModelController);
+                var keys = ColourAnalysis.dropdownOptions(colourspaceModelController);
                 colourspaceModelController.domElement.children[0].selectedIndex = keys.indexOf(
                     controls.colourspaceModel
                 );
@@ -274,10 +264,10 @@
             .name('Colourspace')
             .onChange(function (value) {
                 if (gamutView1.isLoading() || imageView1.isLoading()) {
-                    warning('A visual is already loading!');
+                    ColourAnalysis.warning('A visual is already loading!');
                     controls.imageColourspace = gamutView1.imageColourspace;
 
-                    var keys = dropdownOptions(imageColourspaceController);
+                    var keys = ColourAnalysis.dropdownOptions(imageColourspaceController);
                     imageColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
                         controls.imageColourspace
                     );
@@ -294,7 +284,7 @@
             .name('Out of Primary Colourspace Gamut')
             .onChange(function (value) {
                 if (gamutView1.isLoading() || imageView1.isLoading()) {
-                    warning('A visual is already loading!');
+                    ColourAnalysis.warning('A visual is already loading!');
                     controls.outOfPrimaryColourspaceGamut =
                         gamutView1.imageScatterOverlayVisual.outOfPrimaryColourspaceGamut;
                     outOfPrimaryColourspaceGamutController.updateDisplay();
@@ -311,7 +301,7 @@
             .name('Out of Secondary Colourspace Gamut')
             .onChange(function (value) {
                 if (gamutView1.isLoading() || imageView1.isLoading()) {
-                    warning('A visual is already loading!');
+                    ColourAnalysis.warning('A visual is already loading!');
                     controls.outOfSecondaryColourspaceGamut =
                         gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut;
                     outOfSecondaryColourspaceGamutController.updateDisplay();
@@ -351,7 +341,7 @@
             .onChange(function (value) {
                 gamutView1.primaryColourspaceVisual.uniformOpacity = value;
             });
-        var updatePrimaryColourspaceDropdown = updateDropdown.bind(
+        var updatePrimaryColourspaceDropdown = ColourAnalysis.updateDropdown.bind(
             null,
             controls,
             'primaryColourspace',
@@ -361,10 +351,10 @@
         loader.load('/RGB-colourspaces', updatePrimaryColourspaceDropdown);
         primaryColourspaceController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
-                warning('A visual is already loading!');
+                ColourAnalysis.warning('A visual is already loading!');
                 controls.primaryColourspace = gamutView1.primaryColourspace;
 
-                var keys = dropdownOptions(primaryColourspaceController);
+                var keys = ColourAnalysis.dropdownOptions(primaryColourspaceController);
                 primaryColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
                     controls.primaryColourspace
                 );
@@ -398,7 +388,7 @@
             .onChange(function (value) {
                 gamutView1.secondaryColourspaceVisual.uniformOpacity = value;
             });
-        var updateSecondaryColourspaceDropdown = updateDropdown.bind(
+        var updateSecondaryColourspaceDropdown = ColourAnalysis.updateDropdown.bind(
             null,
             controls,
             'secondaryColourspace',
@@ -408,10 +398,10 @@
         loader.load('/RGB-colourspaces', updateSecondaryColourspaceDropdown);
         secondaryColourspaceController.onChange(function (value) {
             if (gamutView1.isLoading() || imageView1.isLoading()) {
-                warning('A visual is already loading!');
+                ColourAnalysis.warning('A visual is already loading!');
                 controls.secondaryColourspace = gamutView1.secondaryColourspace;
 
-                var keys = dropdownOptions(secondaryColourspaceController);
+                var keys = ColourAnalysis.dropdownOptions(secondaryColourspaceController);
                 secondaryColourspaceController.domElement.children[0].selectedIndex = keys.indexOf(
                     controls.secondaryColourspace
                 );

@@ -327,6 +327,8 @@ def index():
 
     return render_template(
         'index.html',
+        colour_analysis_js=os.environ.get('COLOUR_ANALYSIS_JS',
+                                          '/static/js/colour-analysis.js'),
         image=os.listdir(IMAGES_DIRECTORY)[0],
         primary_colourspace=PRIMARY_COLOURSPACE,
         secondary_colourspace=SECONDARY_COLOURSPACE,

@@ -39,6 +39,7 @@ Development
     $ conda install -y -c conda-forge colour-science
     $ conda install flask invoke matplotlib
     $ pip install git+git://github.com/colour-science/flask-compress@feature/cache
+    $ npm run build
     $ python app.py
 
 About

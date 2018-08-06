@@ -1,0 +1,25 @@
+{
+  "name": "colour-analysis",
+  "version": "0.1.0",
+  "description": "Colour - Analysis",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/colour-science/colour-analysis-three.js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/colour-science/colour-analysis-three.js/issues"
+  },
+  "homepage": "https://github.com/colour-science/colour-analysis-three.js#readme",
+  "devDependencies": {
+    "webpack": "^4.16.5",
+    "webpack-cli": "^3.1.0"
+  }
+}
