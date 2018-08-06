@@ -16,6 +16,11 @@
             margin: 0px;
         }
 
+        a,
+        a:visited {
+            color: #F44336,
+        }
+
         .box {
             display: flex;
             flex-flow: column;
@@ -25,6 +30,7 @@
         .box .row.header {
             display: flex;
             flex-direction: row;
+            height: 24px;
         }
 
         .box .row.content {
@@ -37,12 +43,14 @@
         .box .row.footer {
             display: flex;
             flex-direction: row;
+            height: 24px;
         }
 
         #title {
+            align-items: center;
             color: #9C27B0;
-            flex: 1;
-            padding: 4px;
+            display: flex;
+            padding-left: 12px;
         }
 
         #gamutView1,
@@ -51,15 +59,17 @@
         }
 
         #info {
+            align-items: center;
             color: #9C27B0;
-            flex: 1;
-            padding: 4px;
+            display: flex;
+            padding-left: 12px;
         }
 
         #warning {
+            align-items: center;
             color: #F44336;
-            flex: 1;
-            padding: 4px;
+            display: flex;
+            padding-left: 12px;
         }
 
         /* Splitter */
