@@ -1,8 +1,8 @@
 function serverRoute(route) {
-    if (window.colourAnalysisServer == undefined) {
-        return route;
-    } else {
+    if (window.colourAnalysisServer != undefined) {
         return `${window.colourAnalysisServer}${route}`;
+    } else {
+        return route;
     }
 }
 
@@ -70,6 +70,10 @@ function clearRegistry(element, registry) {
 }
 
 function message(text, element, registry, delay, speed) {
+    if (element == null || element == undefined) {
+        return;
+    }
+
     element.innerText = text;
     clearRegistry(element, registry);
     fadeElement(element, registry, delay, speed);
