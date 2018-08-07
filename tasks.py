@@ -22,7 +22,7 @@ __status__ = 'Production'
 
 __all__ = [
     'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'formatting',
-    'docker_build', 'docker_remove', 'docker_run'
+    'npm_build', 'docker_build', 'docker_remove', 'docker_run'
 ]
 
 APPLICATION_NAME = app.__application_name__
@@ -81,8 +81,28 @@ def formatting(ctx, yapf=False):
         message_box('Formatting codebase with "Yapf"...')
         ctx.run('yapf -p -i -r .')
 
-
 @task
+def npm_build(ctx):
+    """
+    Builds the *npm* package.
+
+    Parameters
+    ----------
+    ctx : invoke.context.Context
+        Context.
+
+    Returns
+    -------
+    bool
+        Task success.
+    """
+
+    message_box('Building "npm" package...')
+
+    ctx.run('npm run build')
+
+
+@task(npm_build)
 def docker_build(ctx):
     """
     Builds the *docker* image.
