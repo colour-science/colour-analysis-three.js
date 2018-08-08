@@ -55,14 +55,16 @@ DEFAULT_FLOAT_DTYPE : type
 """
 
 COLOURSPACE_MODELS = ('CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS',
-                      'CIE UVW', 'IPT', 'Hunter Lab', 'Hunter Rdab')
+                      'CIE UVW', 'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT',
+                      'JzAzBz', 'OSA UCS', 'hdr-CIELAB', 'hdr-IPT')
 """
 Reference colourspace models defining available colour transformations from
 CIE XYZ tristimulus values.
 
 COLOURSPACE_MODELS : tuple
-    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'IPT',
-    'Hunter Lab', 'Hunter Rdab'}**
+    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
+    'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+    'hdr-CIELAB', 'hdr-IPT'}**
 """
 
 COLOURSPACE_MODELS_LABELS = {
@@ -72,17 +74,23 @@ COLOURSPACE_MODELS_LABELS = {
     'CIE Luv': ('u*', 'L*', 'v*'),
     'CIE UCS': ('U', 'W', 'V'),
     'CIE UVW': ('U*', 'W*', 'V*'),
-    'IPT': ('P', 'I', 'T'),
+    'DIN 99': ('a99', 'L99', 'b99'),
     'Hunter Lab': ('a', 'L', 'b'),
-    'Hunter Rdab': ('a', 'Rd', 'b')
+    'Hunter Rdab': ('a', 'Rd', 'b'),
+    'IPT': ('P', 'I', 'T'),
+    'JzAzBz': ('Az', 'Jz', 'Bz'),
+    'OSA UCS': ('j', 'J', 'g'),
+    'hdr-CIELAB': ('a hdr', 'L hdr', 'b hdr'),
+    'hdr-IPT': ('P hdr', 'I hdr', 'T hdr')
 }
 """
 Reference colourspace models axes labels, ordered so that luminance is on *Y*
 axis.
 
 COLOURSPACE_MODELS : dict
-    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'IPT',
-    'Hunter Lab', 'Hunter Rdab'}**
+    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
+    'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+    'hdr-CIELAB', 'hdr-IPT'}**
 """
 
 PRIMARY_COLOURSPACE = 'sRGB'
@@ -111,8 +119,9 @@ COLOURSPACE_MODEL = 'CIE xyY'
 Analysis colour model.
 
 COLOURSPACE_MODEL : unicode
-    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'IPT',
-    'Hunter Lab', 'Hunter Rdab'}**
+    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
+    'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+    'hdr-CIELAB', 'hdr-IPT'}**
 """
 
 IMAGE_CACHE = SimpleCache(default_timeout=60 * 24 * 7)
@@ -162,7 +171,8 @@ def colourspace_model_axis_reorder(a, model=None):
         Colourspace model :math:`a` array.
     model : unicode, optional
         **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
-        'IPT', 'Hunter Lab', 'Hunter Rdab'}**
+        'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+        'hdr-CIELAB', 'hdr-IPT'}**
         Colourspace model.
 
     Returns
@@ -176,8 +186,9 @@ def colourspace_model_axis_reorder(a, model=None):
         a = tstack((k, j, i))
     elif model in ('CIE UCS', 'CIE UVW', 'CIE xyY'):
         a = tstack((j, k, i))
-    elif model in ('CIE Lab', 'CIE LCHab', 'CIE Luv', 'CIE LCHuv', 'IPT',
-                   'Hunter Lab', 'Hunter Rdab'):
+    elif model in ('CIE Lab', 'CIE LCHab', 'CIE Luv', 'CIE LCHuv', 'DIN 99',
+                   'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+                   'hdr-CIELAB', 'hdr-IPT'):
         a = tstack((k, i, j))
 
     return a
@@ -193,7 +204,8 @@ def colourspace_model_faces_reorder(a, model=None):
         Colourspace model :math:`a` array.
     model : unicode, optional
         **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
-        'IPT', 'Hunter Lab', 'Hunter Rdab'}**
+        'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+        'hdr-CIELAB', 'hdr-IPT'}**
         Colourspace model.
 
     Returns
@@ -280,7 +292,9 @@ BufferGeometryLoader>`_.
         values = np.ravel(values)
 
         if 'float' in dtype.name:
-            values = np.around(values, np.finfo(DEFAULT_FLOAT_DTYPE).precision)
+            values = np.nan_to_num(
+                np.around(values,
+                          np.finfo(DEFAULT_FLOAT_DTYPE).precision))
 
         data['data']['attributes'][attribute] = {
             'itemSize': shape[-1],
@@ -544,7 +558,6 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
     vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
                                  colourspace_model), colourspace_model)
-    vertices[np.isnan(vertices)] = 0
 
     return buffer_geometry(position=vertices, color=RGB, index=faces)
 
@@ -582,7 +595,6 @@ def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
     vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
                                  colourspace_model), colourspace_model)
-    vertices[np.isnan(vertices)] = 0
 
     RGB = normalise_maximum(
         XYZ_to_RGB(XYZ, colourspace.whitepoint, colourspace.whitepoint,
@@ -675,7 +687,6 @@ def RGB_image_scatter_visual(path,
     vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
                                  colourspace_model), colourspace_model)
-    vertices[np.isnan(vertices)] = 0
 
     if out_of_primary_colourspace_gamut or out_of_secondary_colourspace_gamut:
         RGB = np.ones(RGB.shape)

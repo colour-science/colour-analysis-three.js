@@ -37,7 +37,7 @@ RUN /opt/conda/bin/conda install -y \
 RUN pip install \
     gunicorn \
     Flask-Caching \
-    git+git://github.com/colour-science/colour@feature/domain_range_scale \
+    git+git://github.com/colour-science/colour@develop \
     git+git://github.com/colour-science/flask-compress@feature/cache
 
 RUN mkdir -p /home/colour-analysis
