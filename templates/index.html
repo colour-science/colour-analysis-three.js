@@ -143,6 +143,7 @@
         var primaryColourspace = '{{ primary_colourspace }}';
         var secondaryColourspace = '{{ secondary_colourspace }}';
         var imageColourspace = '{{ image_colourspace }}';
+        var imageDecodingCctf = '{{ image_decoding_cctf }}';
 
         var gamutView1 = new ColourAnalysis.GamutView(
             document.getElementById('gamutView1'),
@@ -150,7 +151,8 @@
                 image: image,
                 primaryColourspace: primaryColourspace,
                 secondaryColourspace: secondaryColourspace,
-                imageColourspace: imageColourspace
+                imageColourspace: imageColourspace,
+                imageDecodingCctf: imageDecodingCctf
             }
         );
         gamutView1.addViewAxesVisual();
@@ -167,7 +169,8 @@
                 image: image,
                 primaryColourspace: primaryColourspace,
                 secondaryColourspace: secondaryColourspace,
-                imageColourspace: imageColourspace
+                imageColourspace: imageColourspace,
+                imageDecodingCctf: imageDecodingCctf
             }
         );
         imageView1.addImageVisual();
@@ -176,8 +179,12 @@
 
         class Controls {
             constructor() {
-                this.image = [];
                 this.colourspaceModel = [];
+                this.image = [];
+                this.imageColourspace = imageColourspace;
+                this.imageDecodingCctf = imageDecodingCctf;
+                this.outOfPrimaryColourspaceGamut = false;
+                this.outOfSecondaryColourspaceGamut = false;
 
                 this.primaryColourspace = gamutView1.primaryColourspace;
                 this.primaryColourspaceVisualWireframe = false;
@@ -189,12 +196,9 @@
                 this.secondaryColourspaceVisualVisible = true;
                 this.secondaryColourspaceVisualOpacity = 0.25;
 
-                this.imageColourspace = 'Primary';
                 this.imageScatterVisualVisible = true;
                 this.imageScatterVisualOpacity = 0.75;
                 this.imageScatterVisualSize = 0.01;
-                this.outOfPrimaryColourspaceGamut = false;
-                this.outOfSecondaryColourspaceGamut = false;
                 this.imageScatterVisualSaturate = false;
 
                 this.spectralLocusVisualVisible = true;
@@ -207,35 +211,6 @@
 
         /*** Overall ***/
         var overallFolder = gui.addFolder('Overall');
-
-        // Image
-        var imageController = overallFolder.add(controls, 'image', []).name('Image');
-        var updateImageDropdown = ColourAnalysis.updateDropdown.bind(
-            null,
-            controls,
-            'image',
-            imageController,
-            image
-        );
-        var loader = new THREE.FileLoader();
-        loader.setResponseType('json');
-
-        loader.load(ColourAnalysis.serverRoute('/images'), updateImageDropdown);
-        imageController.onChange(function (value) {
-            if (gamutView1.isLoading() || imageView1.isLoading()) {
-                ColourAnalysis.warning('A visual is already loading!');
-                controls.image = gamutView1.image;
-
-                var keys = ColourAnalysis.dropdownOptions(imageController);
-                imageController.domElement.children[0].selectedIndex = keys.indexOf(
-                    controls.image
-                );
-                return;
-            }
-
-            gamutView1.image = value;
-            imageView1.image = value;
-        });
 
         // Model
         var colourspaceModelController = overallFolder
@@ -271,7 +246,36 @@
             imageView1.colourspaceModel = value;
         });
 
-        // Colourspace
+        // Image
+        var imageController = overallFolder.add(controls, 'image', []).name('Image');
+        var updateImageDropdown = ColourAnalysis.updateDropdown.bind(
+            null,
+            controls,
+            'image',
+            imageController,
+            image
+        );
+        var loader = new THREE.FileLoader();
+        loader.setResponseType('json');
+
+        loader.load(ColourAnalysis.serverRoute('/images'), updateImageDropdown);
+        imageController.onChange(function (value) {
+            if (gamutView1.isLoading() || imageView1.isLoading()) {
+                ColourAnalysis.warning('A visual is already loading!');
+                controls.image = gamutView1.image;
+
+                var keys = ColourAnalysis.dropdownOptions(imageController);
+                imageController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.image
+                );
+                return;
+            }
+
+            gamutView1.image = value;
+            imageView1.image = value;
+        });
+
+        // Image Colourspace
         var imageColourspaceController = overallFolder
             .add(controls, 'imageColourspace', ['Primary', 'Secondary'])
             .name('Colourspace')
@@ -292,6 +296,40 @@
                 gamutView1.imageColourspace = value;
                 imageView1.imageColourspace = value;
             });
+
+        // Image Decoding CCTF
+        var imageDecodingCctfController = overallFolder
+            .add(controls, 'imageDecodingCctf', [])
+            .name('Decoding CCTF');
+        var updateImageDecodingCctfDropdown = ColourAnalysis.updateDropdown.bind(
+            null,
+            controls,
+            'imageDecodingCctf',
+            imageDecodingCctfController,
+            imageDecodingCctf
+        );
+        var loader = new THREE.FileLoader();
+        loader.setResponseType('json');
+
+        loader.load(
+            ColourAnalysis.serverRoute('/decoding-cctfs'),
+            updateImageDecodingCctfDropdown
+        );
+        imageDecodingCctfController.onChange(function (value) {
+            if (gamutView1.isLoading() || imageView1.isLoading()) {
+                ColourAnalysis.warning('A visual is already loading!');
+                controls.imageDecodingCctf = gamutView1.imageDecodingCctf;
+
+                var keys = ColourAnalysis.dropdownOptions(imageDecodingCctfController);
+                imageDecodingCctfController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.imageDecodingCctf
+                );
+                return;
+            }
+
+            gamutView1.imageDecodingCctf = value;
+            imageView1.imageDecodingCctf = value;
+        });
 
         // Out of Primary Colourspace Gamut
         var outOfPrimaryColourspaceGamutController = overallFolder

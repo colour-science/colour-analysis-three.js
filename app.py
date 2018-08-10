@@ -16,10 +16,10 @@ from werkzeug.contrib.cache import SimpleCache
 from colour.utilities import domain_range_scale
 
 from colour_analysis import (
-    COLOURSPACE_MODEL, IMAGE_COLOURSPACE, PRIMARY_COLOURSPACE,
+    COLOURSPACE_MODEL, IMAGE_COLOURSPACE, IMAGE_DECODING_CCTF, PRIMARY_COLOURSPACE,
     RGB_colourspaces, RGB_colourspace_volume_visual, SECONDARY_COLOURSPACE,
-    colourspace_models, spectral_locus_visual, RGB_image_scatter_visual,
-    image_data)
+    colourspace_models, decoding_cctfs, spectral_locus_visual,
+    RGB_image_scatter_visual, image_data)
 
 __author__ = 'Colour Developers'
 __copyright__ = 'Copyright (C) 2018 - Colour Developers'
@@ -41,7 +41,7 @@ __version__ = '.'.join(
 
 __all__ = [
     'APP', 'CACHE', 'CACHE_DEFAULT_TIMEOUT', 'IMAGES_DIRECTORY',
-    'images_response', 'colourspace_models_response',
+    'images_response', 'decoding_cctfs_response','colourspace_models_response',
     'RGB_colourspaces_response', 'RGB_colourspace_volume_visual_response',
     'spectral_locus_visual_response', 'RGB_image_scatter_visual_response',
     'image_data_response', 'index', 'after_request'
@@ -146,6 +146,26 @@ def images_response():
     """
 
     json_data = json.dumps(os.listdir(IMAGES_DIRECTORY))
+
+    response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
+
+    return response
+
+
+@APP.route('/decoding-cctfs')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
+def decoding_cctfs_response():
+    """
+    Returns the decoding colour component transfer functions response.
+
+    Returns
+    -------
+    Response
+        Decoding colour component transfer functions response.
+    """
+
+    json_data = decoding_cctfs()
 
     response = Response(json_data, status=200, mimetype='application/json')
     response.headers['X-Content-Length'] = len(json_data)
@@ -265,6 +285,7 @@ def RGB_image_scatter_visual_response(image):
         secondary_colourspace=args.get('secondaryColourspace',
                                        SECONDARY_COLOURSPACE),
         image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
+        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_DECODING_CCTF),
         colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
         out_of_primary_colourspace_gamut=_bool_to_bool(
             args.get('outOfPrimaryColourspaceGamut', False)),
@@ -302,6 +323,7 @@ def image_data_response(image):
         secondary_colourspace=args.get('secondaryColourspace',
                                        SECONDARY_COLOURSPACE),
         image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
+        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_DECODING_CCTF),
         out_of_primary_colourspace_gamut=_bool_to_bool(
             args.get('outOfPrimaryColourspaceGamut', False)),
         out_of_secondary_colourspace_gamut=_bool_to_bool(
@@ -332,7 +354,8 @@ def index():
         image=os.listdir(IMAGES_DIRECTORY)[0],
         primary_colourspace=PRIMARY_COLOURSPACE,
         secondary_colourspace=SECONDARY_COLOURSPACE,
-        image_colourspace=IMAGE_COLOURSPACE)
+        image_colourspace=IMAGE_COLOURSPACE,
+        image_decoding_cctf=IMAGE_DECODING_CCTF)
 
 
 @APP.after_request
@@ -342,8 +365,7 @@ def after_request(response):
                          'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods',
                          'GET,PUT,POST,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Expose-Headers',
-                         'X-Content-Length')
+    response.headers.add('Access-Control-Expose-Headers', 'X-Content-Length')
 
     return response
 

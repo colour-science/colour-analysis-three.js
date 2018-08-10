@@ -32,7 +32,8 @@ class GamutView extends PerspectiveView {
                 colourspaceModel: 'CIE xyY',
                 primaryColourspace: 'sRGB',
                 secondaryColourspace: 'DCI-P3',
-                imageColourspace: 'Primary'
+                imageColourspace: 'Primary',
+                imageDecodingCctf: 'sRGB'
             },
             ...settings
         };
@@ -78,6 +79,7 @@ class GamutView extends PerspectiveView {
         this._primaryColourspace = settings.primaryColourspace;
         this._secondaryColourspace = settings.secondaryColourspace;
         this._imageColourspace = settings.imageColourspace;
+        this._imageDecodingCctf = settings.imageDecodingCctf;
 
         this._viewAxesVisual = undefined;
 
@@ -222,6 +224,22 @@ class GamutView extends PerspectiveView {
         }
     }
 
+    get imageDecodingCctf() {
+        return this._imageDecodingCctf;
+    }
+
+    set imageDecodingCctf(value) {
+        this._imageDecodingCctf = value;
+
+        if (this._imageScatterVisual != undefined) {
+            this._imageScatterVisual.imageDecodingCctf = value;
+        }
+
+        if (this._imageScatterOverlayVisual != undefined) {
+            this._imageScatterOverlayVisual.imageDecodingCctf = value;
+        }
+    }
+
     get viewAxesVisual() {
         return this._viewAxesVisual;
     }
@@ -335,6 +353,7 @@ class GamutView extends PerspectiveView {
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
                     imageColourspace: this._imageColourspace,
+                    imageDecodingCctf: this._imageDecodingCctf,
                     colourspaceModel: this._colourspaceModel
                 },
                 ...settings
@@ -353,6 +372,7 @@ class GamutView extends PerspectiveView {
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
                     imageColourspace: this._imageColourspace,
+                    imageDecodingCctf: this._imageDecodingCctf,
                     colourspaceModel: this._colourspaceModel,
                     uniformOpacity: 0.5
                 },

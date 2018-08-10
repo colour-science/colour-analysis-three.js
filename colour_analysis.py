@@ -13,11 +13,13 @@ import json
 import numpy as np
 import os
 import re
+from collections import OrderedDict
 from werkzeug.contrib.cache import SimpleCache
 
-from colour import RGB_COLOURSPACES, RGB_to_XYZ, read_image
-from colour.models import (XYZ_to_colourspace_model, XYZ_to_RGB, RGB_to_RGB,
-                           oetf_reverse_sRGB)
+from colour import (LOG_DECODING_CURVES, OETFS_REVERSE,
+                    RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB,
+                    read_image)
+from colour.models import XYZ_to_colourspace_model, function_gamma
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
 from colour.utilities import first_item, normalise_maximum, tsplit, tstack
 
@@ -30,11 +32,12 @@ __status__ = 'Production'
 
 __all__ = [
     'LINEAR_FILE_FORMATS', 'DEFAULT_FLOAT_DTYPE', 'COLOURSPACE_MODELS',
-    'COLOURSPACE_MODELS_LABELS', 'PRIMARY_COLOURSPACE',
-    'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE', 'COLOURSPACE_MODEL',
-    'IMAGE_CACHE', 'load_image', 'colourspace_model_axis_reorder',
-    'colourspace_model_faces_reorder', 'colourspace_models',
-    'RGB_colourspaces', 'buffer_geometry', 'create_plane', 'create_box',
+    'COLOURSPACE_MODELS_LABELS', 'DECODING_CCTFS', 'PRIMARY_COLOURSPACE',
+    'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE', 'IMAGE_DECODING_CCTF',
+    'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
+    'colourspace_model_axis_reorder', 'colourspace_model_faces_reorder',
+    'decoding_cctfs', 'colourspace_models', 'RGB_colourspaces',
+    'buffer_geometry', 'create_plane', 'create_box',
     'RGB_colourspace_volume_visual', 'spectral_locus_visual',
     'RGB_image_scatter_visual', 'image_data'
 ]
@@ -93,6 +96,21 @@ COLOURSPACE_MODELS : dict
     'hdr-CIELAB', 'hdr-IPT'}**
 """
 
+DECODING_CCTFS = OrderedDict()
+DECODING_CCTFS.update(
+    sorted({
+        'Gamma 2.2': lambda x: function_gamma(x, 2.2),
+        'Gamma 2.4': lambda x: function_gamma(x, 2.4),
+        'Gamma 2.6': lambda x: function_gamma(x, 2.6)
+    }.items()))
+DECODING_CCTFS.update(sorted(OETFS_REVERSE.items()))
+DECODING_CCTFS.update(sorted(LOG_DECODING_CURVES.items()))
+"""
+Decoding colour component transfer functions.
+
+DECODING_CCTFS : OrderedDict
+"""
+
 PRIMARY_COLOURSPACE = 'sRGB'
 """
 Primary analysis RGB colourspace.
@@ -114,6 +132,13 @@ Analysed image RGB colourspace either *Primary* or *Secondary*.
 IMAGE_COLOURSPACE : unicode
 """
 
+IMAGE_DECODING_CCTF = 'sRGB'
+"""
+Analysed image RGB colourspace decoding colour component transfer function.
+
+IMAGE_DECODING_CCTF : unicode
+"""
+
 COLOURSPACE_MODEL = 'CIE xyY'
 """
 Analysis colour model.
@@ -132,7 +157,7 @@ IMAGE_CACHE : SimpleCache
 """
 
 
-def load_image(path):
+def load_image(path, decoding_cctf='sRGB'):
     """
     Loads the image at given path and caches it in `IMAGE_CACHE` cache. If the
     image is already cached, it is returned directly.
@@ -141,6 +166,11 @@ def load_image(path):
     ----------
     path : unicode
         Image path.
+    decoding_cctf : unicode, optional
+        Decoding colour component transfer function (Decoding CCTF) /
+        electro-optical transfer function (EOTF / EOCF) that maps an
+        :math:`R'G'B'` video component signal value to tristimulus values at
+        the display.
 
     Returns
     -------
@@ -148,14 +178,16 @@ def load_image(path):
         Image as a ndarray.
     """
 
-    RGB = IMAGE_CACHE.get(path)
+    key = '{0}-{1}'.format(path, decoding_cctf)
+
+    RGB = IMAGE_CACHE.get(key)
     if RGB is None:
         RGB = read_image(path)
 
         if os.path.splitext(path)[-1].lower() not in LINEAR_FILE_FORMATS:
-            RGB = oetf_reverse_sRGB(RGB)
+            RGB = DECODING_CCTFS[decoding_cctf](RGB)
 
-        IMAGE_CACHE.set(path, RGB)
+        IMAGE_CACHE.set(key, RGB)
 
     return RGB
 
@@ -218,6 +250,20 @@ def colourspace_model_faces_reorder(a, model=None):
         a = a[::-1]
 
     return a
+
+
+def decoding_cctfs():
+    """
+    Returns the decoding colour component transfer functions formatted as
+    *JSON*.
+
+    Returns
+    -------
+    unicode
+        Decoding colour component transfer functions formatted as *JSON*.
+    """
+
+    return json.dumps(DECODING_CCTFS.keys())
 
 
 def colourspace_models():
@@ -608,6 +654,7 @@ def RGB_image_scatter_visual(path,
                              primary_colourspace=PRIMARY_COLOURSPACE,
                              secondary_colourspace=SECONDARY_COLOURSPACE,
                              image_colourspace=IMAGE_COLOURSPACE,
+                             image_decoding_cctf=IMAGE_DECODING_CCTF,
                              colourspace_model=COLOURSPACE_MODEL,
                              out_of_primary_colourspace_gamut=False,
                              out_of_secondary_colourspace_gamut=False,
@@ -628,6 +675,11 @@ def RGB_image_scatter_visual(path,
     image_colourspace: unicode, optional
         **{'Primary', 'Secondary'}**,
         Analysed image RGB colourspace.
+    image_decoding_cctf : unicode, optional
+        Analysed image decoding colour component transfer function
+        (Decoding CCTF) / electro-optical transfer function (EOTF / EOCF) that
+        maps an :math:`R'G'B'` video component signal value to tristimulus
+        values at the display.
     colourspace_model : unicode, optional
         Colourspace model used to generate the visual geometry.
     out_of_primary_colourspace_gamut : bool, optional
@@ -659,7 +711,7 @@ def RGB_image_scatter_visual(path,
     colourspace = (primary_colourspace if image_colourspace == 'Primary' else
                    secondary_colourspace)
 
-    RGB = load_image(path)
+    RGB = load_image(path, image_decoding_cctf)
 
     if saturate:
         RGB = np.clip(RGB, 0, 1)
@@ -698,6 +750,7 @@ def image_data(path,
                primary_colourspace=PRIMARY_COLOURSPACE,
                secondary_colourspace=SECONDARY_COLOURSPACE,
                image_colourspace=IMAGE_COLOURSPACE,
+               image_decoding_cctf=IMAGE_DECODING_CCTF,
                out_of_primary_colourspace_gamut=False,
                out_of_secondary_colourspace_gamut=False,
                saturate=False):
@@ -716,6 +769,11 @@ def image_data(path,
     image_colourspace: unicode, optional
         **{'Primary', 'Secondary'}**,
         Analysed image RGB colourspace.
+    image_decoding_cctf : unicode, optional
+        Analysed image decoding colour component transfer function
+        (Decoding CCTF) / electro-optical transfer function (EOTF / EOCF) that
+        maps an :math:`R'G'B'` video component signal value to tristimulus
+        values at the display.
     out_of_primary_colourspace_gamut : bool, optional
         Whether to only generate the out of primary RGB colourspace gamut
         values.
@@ -738,7 +796,7 @@ def image_data(path,
         filter_RGB_colourspaces('^{0}$'.format(
             re.escape(secondary_colourspace))))
 
-    RGB = load_image(path)
+    RGB = load_image(path, image_decoding_cctf)
 
     if saturate:
         RGB = np.clip(RGB, 0, 1)

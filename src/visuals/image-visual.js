@@ -9,6 +9,7 @@ class ImageVisual extends Visual {
         this._primaryColourspace = settings.primaryColourspace || 'sRGB';
         this._secondaryColourspace = settings.secondaryColourspace || 'DCI-P3';
         this._imageColourspace = settings.imageColourspace || 'Primary';
+        this._imageDecodingCctf = settings.imageDecodingCctf || 'sRGB';
         this._uniformOpacity = settings.uniformOpacity || 1.0;
         this._outOfPrimaryColourspaceGamut =
             settings.outOfPrimaryColourspaceGamut || false;
@@ -58,6 +59,15 @@ class ImageVisual extends Visual {
             );
         }
         this._imageColourspace = value;
+        this.add();
+    }
+
+    get imageDecodingCctf() {
+        return this._imageDecodingCctf;
+    }
+
+    set imageDecodingCctf(value) {
+        this._imageDecodingCctf = value;
         this.add();
     }
 
@@ -112,20 +122,25 @@ class ImageVisual extends Visual {
     route() {
         return serverRoute(
             `/image-data/${encodeURIComponent(this._image)}?` +
-            `primaryColourspace=${encodeURIComponent(
-                this._primaryColourspace
-            )}&` +
-            `secondaryColourspace=${encodeURIComponent(
-                this._secondaryColourspace
-            )}&` +
-            `imageColourspace=${encodeURIComponent(this._imageColourspace)}&` +
-            `outOfPrimaryColourspaceGamut=${
-                this._outOfPrimaryColourspaceGamut
-            }&` +
-            `outOfSecondaryColourspaceGamut=${
-                this._outOfSecondaryColourspaceGamut
-            }&` +
-            `saturate=${this._saturate}`
+                `primaryColourspace=${encodeURIComponent(
+                    this._primaryColourspace
+                )}&` +
+                `secondaryColourspace=${encodeURIComponent(
+                    this._secondaryColourspace
+                )}&` +
+                `imageColourspace=${encodeURIComponent(
+                    this._imageColourspace
+                )}&` +
+                `imageDecodingCctf=${encodeURIComponent(
+                    this._imageDecodingCctf
+                )}&` +
+                `outOfPrimaryColourspaceGamut=${
+                    this._outOfPrimaryColourspaceGamut
+                }&` +
+                `outOfSecondaryColourspaceGamut=${
+                    this._outOfSecondaryColourspaceGamut
+                }&` +
+                `saturate=${this._saturate}`
         );
     }
 

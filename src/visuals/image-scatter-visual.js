@@ -9,6 +9,7 @@ class ImageScatterVisual extends Visual {
         this._primaryColourspace = settings.primaryColourspace || 'sRGB';
         this._secondaryColourspace = settings.secondaryColourspace || 'DCI-P3';
         this._imageColourspace = settings.imageColourspace || 'Primary';
+        this._imageDecodingCctf = settings.imageDecodingCctf || 'sRGB';
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
         this._uniformColour = settings.uniformColour || undefined;
         this._uniformOpacity = settings.uniformOpacity || 0.75;
@@ -70,6 +71,15 @@ class ImageScatterVisual extends Visual {
         }
 
         this._imageColourspace = value;
+        this.add();
+    }
+
+    get imageDecodingCctf() {
+        return this._imageDecodingCctf;
+    }
+
+    set imageDecodingCctf(value) {
+        this._imageDecodingCctf = value;
         this.add();
     }
 
@@ -156,22 +166,29 @@ class ImageScatterVisual extends Visual {
     route() {
         return serverRoute(
             `/RGB-image-scatter-visual/${this._image}?` +
-            `primaryColourspace=${encodeURIComponent(
-                this._primaryColourspace
-            )}&` +
-            `secondaryColourspace=${encodeURIComponent(
-                this._secondaryColourspace
-            )}&` +
-            `imageColourspace=${encodeURIComponent(this._imageColourspace)}&` +
-            `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&` +
-            `outOfPrimaryColourspaceGamut=${
-                this._outOfPrimaryColourspaceGamut
-            }&` +
-            `outOfSecondaryColourspaceGamut=${
-                this._outOfSecondaryColourspaceGamut
-            }&` +
-            `subSampling=${this._subSampling}&` +
-            `saturate=${this._saturate}&`
+                `primaryColourspace=${encodeURIComponent(
+                    this._primaryColourspace
+                )}&` +
+                `secondaryColourspace=${encodeURIComponent(
+                    this._secondaryColourspace
+                )}&` +
+                `imageColourspace=${encodeURIComponent(
+                    this._imageColourspace
+                )}&` +
+                `imageDecodingCctf=${encodeURIComponent(
+                    this._imageDecodingCctf
+                )}&` +
+                `colourspaceModel=${encodeURIComponent(
+                    this._colourspaceModel
+                )}&` +
+                `outOfPrimaryColourspaceGamut=${
+                    this._outOfPrimaryColourspaceGamut
+                }&` +
+                `outOfSecondaryColourspaceGamut=${
+                    this._outOfSecondaryColourspaceGamut
+                }&` +
+                `subSampling=${this._subSampling}&` +
+                `saturate=${this._saturate}&`
         );
     }
 

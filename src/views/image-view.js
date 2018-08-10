@@ -19,7 +19,8 @@ class ImageView extends OrthographicView {
                 colourspaceModel: 'CIE xyY',
                 primaryColourspace: 'sRGB',
                 secondaryColourspace: 'DCI-P3',
-                imageColourspace: 'Primary'
+                imageColourspace: 'Primary',
+                imageDecodingCctf: 'sRGB'
             },
             ...settings
         };
@@ -36,6 +37,7 @@ class ImageView extends OrthographicView {
         this._primaryColourspace = settings.primaryColourspace;
         this._secondaryColourspace = settings.secondaryColourspace;
         this._imageColourspace = settings.imageColourspace;
+        this._imageDecodingCctf = settings.imageDecodingCctf;
 
         // The following groups are defining the rendering order.
         this._imageVisualGroup = new THREE.Group();
@@ -116,6 +118,22 @@ class ImageView extends OrthographicView {
         }
     }
 
+    get imageDecodingCctf() {
+        return this._imageDecodingCctf;
+    }
+
+    set imageDecodingCctf(value) {
+        this._imageDecodingCctf = value;
+
+        if (this._imageVisual != undefined) {
+            this._imageVisual.imageDecodingCctf = value;
+        }
+
+        if (this._imageOverlayVisual != undefined) {
+            this._imageOverlayVisual.imageDecodingCctf = value;
+        }
+    }
+
     get imageVisual() {
         return this._imageVisual;
     }
@@ -139,7 +157,9 @@ class ImageView extends OrthographicView {
                 image: this._image,
                 primaryColourspace: this._primaryColourspace,
                 secondaryColourspace: this._secondaryColourspace,
-                imageColourspace: this._imageColourspace
+                imageColourspace: this._imageColourspace,
+                imageDecodingCctf: this._imageDecodingCctf
+
             },
             ...settings
         });
@@ -156,6 +176,7 @@ class ImageView extends OrthographicView {
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
                     imageColourspace: this._imageColourspace,
+                    imageDecodingCctf: this._imageDecodingCctf,
                     uniformOpacity: 0.5,
                     depth: 0.5
                 },
