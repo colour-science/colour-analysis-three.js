@@ -29,11 +29,11 @@ class GamutView extends PerspectiveView {
                 },
                 axes: { enable: true },
                 image: 'Rose.ProPhoto.jpg',
-                colourspaceModel: 'CIE xyY',
                 primaryColourspace: 'sRGB',
                 secondaryColourspace: 'DCI-P3',
                 imageColourspace: 'Primary',
-                imageDecodingCctf: 'sRGB'
+                imageDecodingCctf: 'sRGB',
+                colourspaceModel: 'CIE xyY'
             },
             ...settings
         };
@@ -75,11 +75,11 @@ class GamutView extends PerspectiveView {
         }
 
         this._image = settings.image;
-        this._colourspaceModel = settings.colourspaceModel;
         this._primaryColourspace = settings.primaryColourspace;
         this._secondaryColourspace = settings.secondaryColourspace;
         this._imageColourspace = settings.imageColourspace;
         this._imageDecodingCctf = settings.imageDecodingCctf;
+        this._colourspaceModel = settings.colourspaceModel;
 
         this._viewAxesVisual = undefined;
 
@@ -126,38 +126,6 @@ class GamutView extends PerspectiveView {
 
         if (this._imageScatterOverlayVisual != undefined) {
             this._imageScatterOverlayVisual.image = value;
-        }
-    }
-
-    get colourspaceModel() {
-        return this._colourspaceModel;
-    }
-
-    set colourspaceModel(value) {
-        this._colourspaceModel = value;
-
-        if (this._viewAxesVisual != undefined) {
-            this._viewAxesVisual.colourspaceModel = value;
-        }
-
-        if (this._spectralLocusVisual != undefined) {
-            this._spectralLocusVisual.colourspaceModel = value;
-        }
-
-        if (this._secondaryColourspaceVisual != undefined) {
-            this._secondaryColourspaceVisual.colourspaceModel = value;
-        }
-
-        if (this._primaryColourspaceVisual != undefined) {
-            this._primaryColourspaceVisual.colourspaceModel = value;
-        }
-
-        if (this._imageScatterVisual != undefined) {
-            this._imageScatterVisual.colourspaceModel = value;
-        }
-
-        if (this._imageScatterOverlayVisual != undefined) {
-            this._imageScatterOverlayVisual.colourspaceModel = value;
         }
     }
 
@@ -237,6 +205,38 @@ class GamutView extends PerspectiveView {
 
         if (this._imageScatterOverlayVisual != undefined) {
             this._imageScatterOverlayVisual.imageDecodingCctf = value;
+        }
+    }
+
+    get colourspaceModel() {
+        return this._colourspaceModel;
+    }
+
+    set colourspaceModel(value) {
+        this._colourspaceModel = value;
+
+        if (this._viewAxesVisual != undefined) {
+            this._viewAxesVisual.colourspaceModel = value;
+        }
+
+        if (this._spectralLocusVisual != undefined) {
+            this._spectralLocusVisual.colourspaceModel = value;
+        }
+
+        if (this._secondaryColourspaceVisual != undefined) {
+            this._secondaryColourspaceVisual.colourspaceModel = value;
+        }
+
+        if (this._primaryColourspaceVisual != undefined) {
+            this._primaryColourspaceVisual.colourspaceModel = value;
+        }
+
+        if (this._imageScatterVisual != undefined) {
+            this._imageScatterVisual.colourspaceModel = value;
+        }
+
+        if (this._imageScatterOverlayVisual != undefined) {
+            this._imageScatterOverlayVisual.colourspaceModel = value;
         }
     }
 

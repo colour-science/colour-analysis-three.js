@@ -355,7 +355,8 @@ def index():
         primary_colourspace=PRIMARY_COLOURSPACE,
         secondary_colourspace=SECONDARY_COLOURSPACE,
         image_colourspace=IMAGE_COLOURSPACE,
-        image_decoding_cctf=IMAGE_DECODING_CCTF)
+        image_decoding_cctf=IMAGE_DECODING_CCTF,
+        colourspace_model=COLOURSPACE_MODEL)
 
 
 @APP.after_request

@@ -113,6 +113,15 @@ function loadingCallback(xhr) {
     info(`${this.name}: ${loaded}% loaded...`);
 }
 
+function isLinearFileFormat(path) {
+    var tokens = path.split('.');
+    if (['exr', 'hdr'].indexOf(tokens[tokens.length - 1].toLowerCase()) >= 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 export {
     serverRoute,
     removeObjectByName,
@@ -121,5 +130,6 @@ export {
     message,
     info,
     warning,
-    loadingCallback
+    loadingCallback,
+    isLinearFileFormat
 };

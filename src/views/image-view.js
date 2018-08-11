@@ -16,11 +16,11 @@ class ImageView extends OrthographicView {
                 camera: { position: new THREE.Vector3(0, 1, 0) },
                 controls: { target: new THREE.Vector3(0, 0, 0) },
                 image: 'Rose.ProPhoto.jpg',
-                colourspaceModel: 'CIE xyY',
                 primaryColourspace: 'sRGB',
                 secondaryColourspace: 'DCI-P3',
                 imageColourspace: 'Primary',
-                imageDecodingCctf: 'sRGB'
+                imageDecodingCctf: 'sRGB',
+                colourspaceModel: 'CIE xyY'
             },
             ...settings
         };
@@ -33,11 +33,11 @@ class ImageView extends OrthographicView {
         this.controls.target = settings.controls.target;
 
         this._image = settings.image;
-        this._colourspaceModel = settings.colourspaceModel;
         this._primaryColourspace = settings.primaryColourspace;
         this._secondaryColourspace = settings.secondaryColourspace;
         this._imageColourspace = settings.imageColourspace;
         this._imageDecodingCctf = settings.imageDecodingCctf;
+        this._colourspaceModel = settings.colourspaceModel;
 
         // The following groups are defining the rendering order.
         this._imageVisualGroup = new THREE.Group();
@@ -65,14 +65,6 @@ class ImageView extends OrthographicView {
         if (this._imageOverlayVisual != undefined) {
             this._imageOverlayVisual.image = value;
         }
-    }
-
-    get colourspaceModel() {
-        return this._colourspaceModel;
-    }
-
-    set colourspaceModel(value) {
-        this._colourspaceModel = value;
     }
 
     get primaryColourspace() {
@@ -134,6 +126,14 @@ class ImageView extends OrthographicView {
         }
     }
 
+    get colourspaceModel() {
+        return this._colourspaceModel;
+    }
+
+    set colourspaceModel(value) {
+        this._colourspaceModel = value;
+    }
+
     get imageVisual() {
         return this._imageVisual;
     }
@@ -159,7 +159,6 @@ class ImageView extends OrthographicView {
                 secondaryColourspace: this._secondaryColourspace,
                 imageColourspace: this._imageColourspace,
                 imageDecodingCctf: this._imageDecodingCctf
-
             },
             ...settings
         });

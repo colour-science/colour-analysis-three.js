@@ -16,9 +16,8 @@ import re
 from collections import OrderedDict
 from werkzeug.contrib.cache import SimpleCache
 
-from colour import (LOG_DECODING_CURVES, OETFS_REVERSE,
-                    RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB,
-                    read_image)
+from colour import (LOG_DECODING_CURVES, OETFS_REVERSE, RGB_COLOURSPACES,
+                    RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB, read_image)
 from colour.models import XYZ_to_colourspace_model, function_gamma
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
 from colour.utilities import first_item, normalise_maximum, tsplit, tstack
@@ -178,13 +177,15 @@ def load_image(path, decoding_cctf='sRGB'):
         Image as a ndarray.
     """
 
-    key = '{0}-{1}'.format(path, decoding_cctf)
+    is_linear_image = os.path.splitext(path)[-1].lower() in LINEAR_FILE_FORMATS
+
+    key = path if is_linear_image else '{0}-{1}'.format(path, decoding_cctf)
 
     RGB = IMAGE_CACHE.get(key)
     if RGB is None:
         RGB = read_image(path)
 
-        if os.path.splitext(path)[-1].lower() not in LINEAR_FILE_FORMATS:
+        if not is_linear_image:
             RGB = DECODING_CCTFS[decoding_cctf](RGB)
 
         IMAGE_CACHE.set(key, RGB)

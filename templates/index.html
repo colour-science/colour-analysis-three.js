@@ -144,6 +144,7 @@
         var secondaryColourspace = '{{ secondary_colourspace }}';
         var imageColourspace = '{{ image_colourspace }}';
         var imageDecodingCctf = '{{ image_decoding_cctf }}';
+        var colourspaceModel = '{{ colourspace_model }}';
 
         var gamutView1 = new ColourAnalysis.GamutView(
             document.getElementById('gamutView1'),
@@ -152,7 +153,8 @@
                 primaryColourspace: primaryColourspace,
                 secondaryColourspace: secondaryColourspace,
                 imageColourspace: imageColourspace,
-                imageDecodingCctf: imageDecodingCctf
+                imageDecodingCctf: imageDecodingCctf,
+                colourspaceModel: colourspaceModel,
             }
         );
         gamutView1.addViewAxesVisual();
@@ -170,7 +172,8 @@
                 primaryColourspace: primaryColourspace,
                 secondaryColourspace: secondaryColourspace,
                 imageColourspace: imageColourspace,
-                imageDecodingCctf: imageDecodingCctf
+                imageDecodingCctf: imageDecodingCctf,
+                colourspaceModel: colourspaceModel,
             }
         );
         imageView1.addImageVisual();
@@ -179,19 +182,21 @@
 
         class Controls {
             constructor() {
-                this.colourspaceModel = [];
-                this.image = [];
+
+                this.colourspaceModel = colourspaceModel;
+
+                this.image = image;
                 this.imageColourspace = imageColourspace;
                 this.imageDecodingCctf = imageDecodingCctf;
                 this.outOfPrimaryColourspaceGamut = false;
                 this.outOfSecondaryColourspaceGamut = false;
 
-                this.primaryColourspace = gamutView1.primaryColourspace;
+                this.primaryColourspace = primaryColourspace;
                 this.primaryColourspaceVisualWireframe = false;
                 this.primaryColourspaceVisualVisible = true;
                 this.primaryColourspaceVisualOpacity = 0.75;
 
-                this.secondaryColourspace = gamutView1.secondaryColourspace;
+                this.secondaryColourspace = secondaryColourspace;
                 this.secondaryColourspaceVisualWireframe = true;
                 this.secondaryColourspaceVisualVisible = true;
                 this.secondaryColourspaceVisualOpacity = 0.25;
@@ -316,6 +321,19 @@
             updateImageDecodingCctfDropdown
         );
         imageDecodingCctfController.onChange(function (value) {
+            if (ColourAnalysis.isLinearFileFormat(controls.image)) {
+                ColourAnalysis.warning(
+                    `"${controls.image}" is already linear and ` +
+                    `does not need to be decoded!`);
+                controls.imageDecodingCctf = gamutView1.imageDecodingCctf;
+
+                var keys = ColourAnalysis.dropdownOptions(imageDecodingCctfController);
+                imageDecodingCctfController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.imageDecodingCctf
+                );
+                return;
+            }
+
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 ColourAnalysis.warning('A visual is already loading!');
                 controls.imageDecodingCctf = gamutView1.imageDecodingCctf;
