@@ -159,6 +159,7 @@
         );
         gamutView1.addViewAxesVisual();
         gamutView1.addSpectralLocusVisual();
+        gamutView1.addPointerGamutVisual();
         gamutView1.addSecondaryColourspaceVisual();
         gamutView1.addPrimaryColourspaceVisual();
         gamutView1.addImageScatterVisual();
@@ -207,6 +208,8 @@
                 this.imageScatterVisualSaturate = false;
 
                 this.spectralLocusVisualVisible = true;
+
+                this.pointerGamutVisualVisible = true;
             }
         }
 
@@ -539,6 +542,15 @@
             .name('Visible')
             .onChange(function (value) {
                 gamutView1.spectralLocusVisual.visible = value;
+            });
+
+        /*** Pointer's Gamut ***/
+        var pointerGamutFolder = gui.addFolder('Pointer\'s Gamut');
+        pointerGamutFolder
+            .add(controls, 'pointerGamutVisualVisible')
+            .name('Visible')
+            .onChange(function (value) {
+                gamutView1.pointerGamutVisual.visible = value;
             });
     </script>
 

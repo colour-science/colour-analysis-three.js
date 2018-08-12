@@ -16,10 +16,10 @@ from werkzeug.contrib.cache import SimpleCache
 from colour.utilities import domain_range_scale
 
 from colour_analysis import (
-    COLOURSPACE_MODEL, IMAGE_COLOURSPACE, IMAGE_DECODING_CCTF, PRIMARY_COLOURSPACE,
-    RGB_colourspaces, RGB_colourspace_volume_visual, SECONDARY_COLOURSPACE,
-    colourspace_models, decoding_cctfs, spectral_locus_visual,
-    RGB_image_scatter_visual, image_data)
+    COLOURSPACE_MODEL, IMAGE_COLOURSPACE, IMAGE_DECODING_CCTF,
+    PRIMARY_COLOURSPACE, RGB_colourspaces, RGB_colourspace_volume_visual,
+    RGB_image_scatter_visual, SECONDARY_COLOURSPACE, colourspace_models,
+    decoding_cctfs, pointer_gamut_visual, spectral_locus_visual, image_data)
 
 __author__ = 'Colour Developers'
 __copyright__ = 'Copyright (C) 2018 - Colour Developers'
@@ -41,10 +41,11 @@ __version__ = '.'.join(
 
 __all__ = [
     'APP', 'CACHE', 'CACHE_DEFAULT_TIMEOUT', 'IMAGES_DIRECTORY',
-    'images_response', 'decoding_cctfs_response','colourspace_models_response',
-    'RGB_colourspaces_response', 'RGB_colourspace_volume_visual_response',
-    'spectral_locus_visual_response', 'RGB_image_scatter_visual_response',
-    'image_data_response', 'index', 'after_request'
+    'images_response', 'decoding_cctfs_response',
+    'colourspace_models_response', 'RGB_colourspaces_response',
+    'image_data_response', 'RGB_colourspace_volume_visual_response',
+    'RGB_image_scatter_visual_response', 'spectral_locus_visual_response',
+    'pointer_gamut_response', 'index', 'after_request'
 ]
 
 APP = Flask(__name__)
@@ -213,6 +214,41 @@ def RGB_colourspaces_response():
     return response
 
 
+@APP.route('/image-data/<image>')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
+def image_data_response(image):
+    """
+    Returns an image data response.
+
+    Returns
+    -------
+    Response
+        Image data response.
+    """
+
+    path = os.path.join(os.getcwd(), 'static', 'images', image)
+
+    args = request.args
+    json_data = image_data(
+        path=path,
+        primary_colourspace=args.get('primaryColourspace',
+                                     PRIMARY_COLOURSPACE),
+        secondary_colourspace=args.get('secondaryColourspace',
+                                       SECONDARY_COLOURSPACE),
+        image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
+        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_DECODING_CCTF),
+        out_of_primary_colourspace_gamut=_bool_to_bool(
+            args.get('outOfPrimaryColourspaceGamut', False)),
+        out_of_secondary_colourspace_gamut=_bool_to_bool(
+            args.get('outOfSecondaryColourspaceGamut', False)),
+        saturate=_bool_to_bool(args.get('saturate', False)))
+
+    response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
+
+    return response
+
+
 @APP.route('/RGB-colourspace-volume-visual')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
 def RGB_colourspace_volume_visual_response():
@@ -231,30 +267,6 @@ def RGB_colourspace_volume_visual_response():
         colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
         segments=int(args.get('segments', 16)),
         wireframe=_bool_to_bool(args.get('wireframe', False)),
-    )
-
-    response = Response(json_data, status=200, mimetype='application/json')
-    response.headers['X-Content-Length'] = len(json_data)
-
-    return response
-
-
-@APP.route('/spectral-locus-visual')
-@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
-def spectral_locus_visual_response():
-    """
-    Returns a spectral locus visual response.
-
-    Returns
-    -------
-    Response
-        Spectral locus visual response.
-    """
-
-    args = request.args
-    json_data = spectral_locus_visual(
-        colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
-        colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
     )
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -301,34 +313,45 @@ def RGB_image_scatter_visual_response(image):
     return response
 
 
-@APP.route('/image-data/<image>')
+@APP.route('/spectral-locus-visual')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
-def image_data_response(image):
+def spectral_locus_visual_response():
     """
-    Returns an image data response.
+    Returns a spectral locus visual response.
 
     Returns
     -------
     Response
-        Image data response.
+        Spectral locus visual response.
     """
 
-    path = os.path.join(os.getcwd(), 'static', 'images', image)
+    args = request.args
+    json_data = spectral_locus_visual(
+        colourspace=args.get('colourspace', PRIMARY_COLOURSPACE),
+        colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
+    )
+
+    response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
+
+    return response
+
+
+@APP.route('/pointer-gamut-visual')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
+def pointer_gamut_response():
+    """
+    Returns a *Pointer's Gamut* visual response.
+
+    Returns
+    -------
+    Response
+        *Pointer's Gamut* visual response.
+    """
 
     args = request.args
-    json_data = image_data(
-        path=path,
-        primary_colourspace=args.get('primaryColourspace',
-                                     PRIMARY_COLOURSPACE),
-        secondary_colourspace=args.get('secondaryColourspace',
-                                       SECONDARY_COLOURSPACE),
-        image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
-        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_DECODING_CCTF),
-        out_of_primary_colourspace_gamut=_bool_to_bool(
-            args.get('outOfPrimaryColourspaceGamut', False)),
-        out_of_secondary_colourspace_gamut=_bool_to_bool(
-            args.get('outOfSecondaryColourspaceGamut', False)),
-        saturate=_bool_to_bool(args.get('saturate', False)))
+    json_data = pointer_gamut_visual(
+        colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL), )
 
     response = Response(json_data, status=200, mimetype='application/json')
     response.headers['X-Content-Length'] = len(json_data)

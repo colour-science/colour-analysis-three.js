@@ -1,8 +1,10 @@
 import { PerspectiveView } from './perspective-view.js';
 import { ViewAxesVisual } from '../visuals/view-axes-visual.js';
+
 import { ColourspaceVisual } from '../visuals/colourspace-visual.js';
-import { SpectralLocusVisual } from '../visuals/spectral-locus-visual.js';
 import { ImageScatterVisual } from '../visuals/image-scatter-visual.js';
+import { PointerGamutVisual } from '../visuals/pointer-gamut-visual.js';
+import { SpectralLocusVisual } from '../visuals/spectral-locus-visual.js';
 
 class GamutView extends PerspectiveView {
     constructor(container, settings) {
@@ -88,6 +90,11 @@ class GamutView extends PerspectiveView {
         this._spectralLocusVisualGroup.name = 'spectral-locus-visual-group';
         this._scene.add(this._spectralLocusVisualGroup);
         this._spectralLocusVisual = undefined;
+
+        this._pointerGamutVisualGroup = new THREE.Group();
+        this._pointerGamutVisualGroup.name = 'pointer-gamut-visual-group';
+        this._scene.add(this._pointerGamutVisualGroup);
+        this._pointerGamutVisual = undefined;
 
         this._secondaryColourspaceVisualGroup = new THREE.Group();
         this._secondaryColourspaceVisualGroup.name =
@@ -223,6 +230,10 @@ class GamutView extends PerspectiveView {
             this._spectralLocusVisual.colourspaceModel = value;
         }
 
+        if (this._pointerGamutVisual != undefined) {
+            this._pointerGamutVisual.colourspaceModel = value;
+        }
+
         if (this._secondaryColourspaceVisual != undefined) {
             this._secondaryColourspaceVisual.colourspaceModel = value;
         }
@@ -254,6 +265,14 @@ class GamutView extends PerspectiveView {
 
     set spectralLocusVisual(value) {
         throw new Error('"spectralLocusVisual" property is read only!');
+    }
+
+    get pointerGamutVisual() {
+        return this._pointerGamutVisual;
+    }
+
+    set pointerGamutVisual(value) {
+        throw new Error('"pointerGamutVisual" property is read only!');
     }
 
     get secondaryColourspaceVisual() {
@@ -310,6 +329,19 @@ class GamutView extends PerspectiveView {
             }
         );
         this._spectralLocusVisual.add();
+    }
+
+    addPointerGamutVisual(settings) {
+        this._pointerGamutVisual = new PointerGamutVisual(
+            this._pointerGamutVisualGroup,
+            {
+                ...{
+                    colourspaceModel: this._colourspaceModel
+                },
+                ...settings
+            }
+        );
+        this._pointerGamutVisual.add();
     }
 
     addSecondaryColourspaceVisual(settings) {
@@ -385,6 +417,7 @@ class GamutView extends PerspectiveView {
     isLoading() {
         return (
             this._viewAxesVisual.loading ||
+            this._pointerGamutVisual.loading ||
             this._spectralLocusVisual.loading ||
             this._secondaryColourspaceVisual.loading ||
             this._primaryColourspaceVisual.loading ||

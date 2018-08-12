@@ -16,8 +16,10 @@ import re
 from collections import OrderedDict
 from werkzeug.contrib.cache import SimpleCache
 
-from colour import (LOG_DECODING_CURVES, OETFS_REVERSE, RGB_COLOURSPACES,
-                    RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB, read_image)
+from colour import (Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
+                    POINTER_GAMUT_DATA, POINTER_GAMUT_ILLUMINANT,
+                    OETFS_REVERSE, RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ,
+                    XYZ_to_RGB, read_image)
 from colour.models import (XYZ_to_colourspace_model, function_gamma,
                            function_linear)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
@@ -37,9 +39,9 @@ __all__ = [
     'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
     'colourspace_model_axis_reorder', 'colourspace_model_faces_reorder',
     'decoding_cctfs', 'colourspace_models', 'RGB_colourspaces',
-    'buffer_geometry', 'create_plane', 'create_box',
+    'buffer_geometry', 'create_plane', 'create_box', 'image_data',
     'RGB_colourspace_volume_visual', 'spectral_locus_visual',
-    'RGB_image_scatter_visual', 'image_data'
+    'RGB_image_scatter_visual', 'pointer_gamut_visual'
 ]
 
 LINEAR_FILE_FORMATS = ('.exr', '.hdr')
@@ -148,6 +150,14 @@ COLOURSPACE_MODEL : unicode
     **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
     'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
     'hdr-CIELAB', 'hdr-IPT'}**
+"""
+
+POINTER_GAMUT_DATA = Lab_to_XYZ(
+    LCHab_to_Lab(POINTER_GAMUT_DATA), POINTER_GAMUT_ILLUMINANT)
+"""
+Pointer's Gamut data converted to *CIE XYZ* tristimulus values.
+
+POINTER_GAMUT_DATA : ndarray
 """
 
 IMAGE_CACHE = SimpleCache(default_timeout=60 * 24 * 7)
@@ -564,6 +574,88 @@ def create_box(width=1,
     return vertices, faces, outline
 
 
+def image_data(path,
+               primary_colourspace=PRIMARY_COLOURSPACE,
+               secondary_colourspace=SECONDARY_COLOURSPACE,
+               image_colourspace=IMAGE_COLOURSPACE,
+               image_decoding_cctf=IMAGE_DECODING_CCTF,
+               out_of_primary_colourspace_gamut=False,
+               out_of_secondary_colourspace_gamut=False,
+               saturate=False):
+    """
+    Returns given image RGB data or its out of gamut values formatted as
+    *JSON*.
+
+    Parameters
+    ----------
+    path : unicode
+        Server side path of the image to read.
+    primary_colourspace : unicode, optional
+        Primary RGB colourspace used to generate out of gamut values.
+    secondary_colourspace: unicode, optional
+        Secondary RGB colourspace used to generate out of gamut values.
+    image_colourspace: unicode, optional
+        **{'Primary', 'Secondary'}**,
+        Analysed image RGB colourspace.
+    image_decoding_cctf : unicode, optional
+        Analysed image decoding colour component transfer function
+        (Decoding CCTF) / electro-optical transfer function (EOTF / EOCF) that
+        maps an :math:`R'G'B'` video component signal value to tristimulus
+        values at the display.
+    out_of_primary_colourspace_gamut : bool, optional
+        Whether to only generate the out of primary RGB colourspace gamut
+        values.
+    out_of_secondary_colourspace_gamut : bool, optional
+        Whether to only generate the out of secondary RGB colourspace gamut
+        value.
+    saturate : bool, optional
+        Whether to clip the image in domain [0, 1].
+
+    Returns
+    -------
+    unicode
+        RGB image data or its out of gamut values formatted as *JSON*.
+    """
+
+    primary_colourspace = first_item(
+        filter_RGB_colourspaces('^{0}$'.format(
+            re.escape(primary_colourspace))))
+    secondary_colourspace = first_item(
+        filter_RGB_colourspaces('^{0}$'.format(
+            re.escape(secondary_colourspace))))
+
+    RGB = load_image(path, image_decoding_cctf)
+
+    if saturate:
+        RGB = np.clip(RGB, 0, 1)
+
+    if out_of_primary_colourspace_gamut:
+        if image_colourspace == 'Secondary':
+            RGB = RGB_to_RGB(RGB, secondary_colourspace, primary_colourspace)
+
+        RGB[np.logical_and(RGB >= 0, RGB <= 1)] = 0
+        RGB[RGB != 0] = 1
+        RGB[np.any(RGB == 1, axis=-1)] = 1
+
+    if out_of_secondary_colourspace_gamut:
+        if image_colourspace == 'Primary':
+            RGB = RGB_to_RGB(RGB, primary_colourspace, secondary_colourspace)
+
+        RGB[np.logical_and(RGB >= 0, RGB <= 1)] = 0
+        RGB[RGB != 0] = 1
+        RGB[np.any(RGB == 1, axis=-1)] = 1
+
+    shape = RGB.shape
+    RGB = np.ravel(RGB[..., 0:3].reshape(-1, 3))
+    RGB = np.around(RGB, np.finfo(DEFAULT_FLOAT_DTYPE).precision)
+
+    return json.dumps({
+        'width': shape[1],
+        'height': shape[0],
+        'data': RGB.tolist()
+    })
+
+
 def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
                                   colourspace_model=COLOURSPACE_MODEL,
                                   segments=16,
@@ -609,48 +701,6 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
                                  colourspace_model), colourspace_model)
 
     return buffer_geometry(position=vertices, color=RGB, index=faces)
-
-
-def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
-                          colourspace_model=COLOURSPACE_MODEL,
-                          cmfs='CIE 1931 2 Degree Standard Observer'):
-    """
-    Returns the spectral locus visual geometry formatted as *JSON*.
-
-    Parameters
-    ----------
-    colourspace : unicode, optional
-        RGB colourspace used to generate the visual geometry.
-    colourspace_model : unicode, optional
-        Colourspace model used to generate the visual geometry.
-    cmfs : unicode, optional
-        Standard observer colour matching functions used to draw the spectral
-        locus.
-
-    Returns
-    -------
-    unicode
-        Spectral locus visual geometry formatted as *JSON*.
-    """
-
-    colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
-
-    cmfs = first_item(filter_cmfs(cmfs))
-    XYZ = cmfs.values
-
-    XYZ = np.vstack((XYZ, XYZ[0, ...]))
-
-    vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
-                                 colourspace_model), colourspace_model)
-
-    RGB = normalise_maximum(
-        XYZ_to_RGB(XYZ, colourspace.whitepoint, colourspace.whitepoint,
-                   colourspace.XYZ_to_RGB_matrix),
-        axis=-1)
-
-    return buffer_geometry(position=vertices, color=RGB)
 
 
 def RGB_image_scatter_visual(path,
@@ -749,83 +799,77 @@ def RGB_image_scatter_visual(path,
     return buffer_geometry(position=vertices, color=RGB)
 
 
-def image_data(path,
-               primary_colourspace=PRIMARY_COLOURSPACE,
-               secondary_colourspace=SECONDARY_COLOURSPACE,
-               image_colourspace=IMAGE_COLOURSPACE,
-               image_decoding_cctf=IMAGE_DECODING_CCTF,
-               out_of_primary_colourspace_gamut=False,
-               out_of_secondary_colourspace_gamut=False,
-               saturate=False):
+def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
+                          colourspace_model=COLOURSPACE_MODEL,
+                          cmfs='CIE 1931 2 Degree Standard Observer'):
     """
-    Returns given image RGB data or its out of gamut values formatted as
-    *JSON*.
+    Returns the spectral locus visual geometry formatted as *JSON*.
 
     Parameters
     ----------
-    path : unicode
-        Server side path of the image to read.
-    primary_colourspace : unicode, optional
-        Primary RGB colourspace used to generate out of gamut values.
-    secondary_colourspace: unicode, optional
-        Secondary RGB colourspace used to generate out of gamut values.
-    image_colourspace: unicode, optional
-        **{'Primary', 'Secondary'}**,
-        Analysed image RGB colourspace.
-    image_decoding_cctf : unicode, optional
-        Analysed image decoding colour component transfer function
-        (Decoding CCTF) / electro-optical transfer function (EOTF / EOCF) that
-        maps an :math:`R'G'B'` video component signal value to tristimulus
-        values at the display.
-    out_of_primary_colourspace_gamut : bool, optional
-        Whether to only generate the out of primary RGB colourspace gamut
-        values.
-    out_of_secondary_colourspace_gamut : bool, optional
-        Whether to only generate the out of secondary RGB colourspace gamut
-        value.
-    saturate : bool, optional
-        Whether to clip the image in domain [0, 1].
+    colourspace : unicode, optional
+        RGB colourspace used to generate the visual geometry.
+    colourspace_model : unicode, optional
+        Colourspace model used to generate the visual geometry.
+    cmfs : unicode, optional
+        Standard observer colour matching functions used to draw the spectral
+        locus.
 
     Returns
     -------
     unicode
-        RGB image data or its out of gamut values formatted as *JSON*.
+        Spectral locus visual geometry formatted as *JSON*.
     """
 
-    primary_colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(
-            re.escape(primary_colourspace))))
-    secondary_colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(
-            re.escape(secondary_colourspace))))
+    colourspace = first_item(
+        filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
 
-    RGB = load_image(path, image_decoding_cctf)
+    cmfs = first_item(filter_cmfs(cmfs))
+    XYZ = cmfs.values
 
-    if saturate:
-        RGB = np.clip(RGB, 0, 1)
+    XYZ = np.vstack((XYZ, XYZ[0, ...]))
 
-    if out_of_primary_colourspace_gamut:
-        if image_colourspace == 'Secondary':
-            RGB = RGB_to_RGB(RGB, secondary_colourspace, primary_colourspace)
+    vertices = colourspace_model_axis_reorder(
+        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
+                                 colourspace_model), colourspace_model)
 
-        RGB[np.logical_and(RGB >= 0, RGB <= 1)] = 0
-        RGB[RGB != 0] = 1
-        RGB[np.any(RGB == 1, axis=-1)] = 1
+    RGB = normalise_maximum(
+        XYZ_to_RGB(XYZ, colourspace.whitepoint, colourspace.whitepoint,
+                   colourspace.XYZ_to_RGB_matrix),
+        axis=-1)
 
-    if out_of_secondary_colourspace_gamut:
-        if image_colourspace == 'Primary':
-            RGB = RGB_to_RGB(RGB, primary_colourspace, secondary_colourspace)
+    return buffer_geometry(position=vertices, color=RGB)
 
-        RGB[np.logical_and(RGB >= 0, RGB <= 1)] = 0
-        RGB[RGB != 0] = 1
-        RGB[np.any(RGB == 1, axis=-1)] = 1
 
-    shape = RGB.shape
-    RGB = np.ravel(RGB[..., 0:3].reshape(-1, 3))
-    RGB = np.around(RGB, np.finfo(DEFAULT_FLOAT_DTYPE).precision)
+def pointer_gamut_visual(colourspace_model='CIE xyY'):
+    """
+    Returns the *Pointer's Gamut* visual geometry formatted as *JSON*.
 
-    return json.dumps({
-        'width': shape[1],
-        'height': shape[0],
-        'data': RGB.tolist()
-    })
+    Parameters
+    ----------
+    colourspace_model : unicode, optional
+        Colourspace model used to generate the visual geometry.
+
+    Returns
+    -------
+    unicode
+        *Pointer's Gamut* visual geometry formatted as *JSON*.
+    """
+
+    pointer_gamut_data = np.reshape(POINTER_GAMUT_DATA, (16, -1, 3))
+    vertices = []
+    for i in range(16):
+        section = colourspace_model_axis_reorder(
+            XYZ_to_colourspace_model(
+                np.vstack((pointer_gamut_data[i],
+                           pointer_gamut_data[i][0, ...])),
+                POINTER_GAMUT_ILLUMINANT, colourspace_model),
+            colourspace_model)
+
+        vertices.append(np.array(zip(section, section[1:])))
+
+    vertices = np.asarray(vertices)
+
+    RGB = np.ones(vertices.shape)
+
+    return buffer_geometry(position=vertices, color=RGB)
