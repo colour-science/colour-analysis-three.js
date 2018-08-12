@@ -18,7 +18,8 @@ from werkzeug.contrib.cache import SimpleCache
 
 from colour import (LOG_DECODING_CURVES, OETFS_REVERSE, RGB_COLOURSPACES,
                     RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB, read_image)
-from colour.models import XYZ_to_colourspace_model, function_gamma
+from colour.models import (XYZ_to_colourspace_model, function_gamma,
+                           function_linear)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
 from colour.utilities import first_item, normalise_maximum, tsplit, tstack
 
@@ -100,7 +101,8 @@ DECODING_CCTFS.update(
     sorted({
         'Gamma 2.2': lambda x: function_gamma(x, 2.2),
         'Gamma 2.4': lambda x: function_gamma(x, 2.4),
-        'Gamma 2.6': lambda x: function_gamma(x, 2.6)
+        'Gamma 2.6': lambda x: function_gamma(x, 2.6),
+        'Linear': function_linear,
     }.items()))
 DECODING_CCTFS.update(sorted(OETFS_REVERSE.items()))
 DECODING_CCTFS.update(sorted(LOG_DECODING_CURVES.items()))

@@ -32,7 +32,7 @@ __application_name__ = 'Colour - Analysis'
 
 __major_version__ = '0'
 __minor_version__ = '1'
-__change_version__ = '0'
+__change_version__ = '1'
 __version__ = '.'.join(
     (__major_version__,
      __minor_version__,
@@ -145,7 +145,7 @@ def images_response():
         Images response.
     """
 
-    json_data = json.dumps(os.listdir(IMAGES_DIRECTORY))
+    json_data = json.dumps(sorted(os.listdir(IMAGES_DIRECTORY)))
 
     response = Response(json_data, status=200, mimetype='application/json')
     response.headers['X-Content-Length'] = len(json_data)
@@ -351,7 +351,7 @@ def index():
         'index.html',
         colour_analysis_js=os.environ.get('COLOUR_ANALYSIS_JS',
                                           '/static/js/colour-analysis.js'),
-        image=os.listdir(IMAGES_DIRECTORY)[0],
+        image=sorted(os.listdir(IMAGES_DIRECTORY))[0],
         primary_colourspace=PRIMARY_COLOURSPACE,
         secondary_colourspace=SECONDARY_COLOURSPACE,
         image_colourspace=IMAGE_COLOURSPACE,
