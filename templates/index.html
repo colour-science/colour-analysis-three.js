@@ -264,21 +264,6 @@
         loader.setResponseType('json');
 
         loader.load(ColourAnalysis.serverRoute('/images'), updateImageDropdown);
-        imageController.onChange(function (value) {
-            if (gamutView1.isLoading() || imageView1.isLoading()) {
-                ColourAnalysis.warning('A visual is already loading!');
-                controls.image = gamutView1.image;
-
-                var keys = ColourAnalysis.dropdownOptions(imageController);
-                imageController.domElement.children[0].selectedIndex = keys.indexOf(
-                    controls.image
-                );
-                return;
-            }
-
-            gamutView1.image = value;
-            imageView1.image = value;
-        });
 
         // Image Colourspace
         var imageColourspaceController = overallFolder
@@ -321,18 +306,18 @@
             updateImageDecodingCctfDropdown
         );
         imageDecodingCctfController.onChange(function (value) {
-            if (ColourAnalysis.isLinearFileFormat(controls.image)) {
-                ColourAnalysis.warning(
-                    `"${controls.image}" is already linear and ` +
-                    `does not need to be decoded!`);
-                controls.imageDecodingCctf = gamutView1.imageDecodingCctf;
+            // if (ColourAnalysis.isLinearFileFormat(controls.image)) {
+            //     ColourAnalysis.warning(
+            //         `"${controls.image}" is linear and ` +
+            //         `does not need to be decoded!`);
+            //     controls.imageDecodingCctf = gamutView1.imageDecodingCctf;
 
-                var keys = ColourAnalysis.dropdownOptions(imageDecodingCctfController);
-                imageDecodingCctfController.domElement.children[0].selectedIndex = keys.indexOf(
-                    controls.imageDecodingCctf
-                );
-                return;
-            }
+            //     var keys = ColourAnalysis.dropdownOptions(imageDecodingCctfController);
+            //     imageDecodingCctfController.domElement.children[0].selectedIndex = keys.indexOf(
+            //         controls.imageDecodingCctf
+            //     );
+            //     return;
+            // }
 
             if (gamutView1.isLoading() || imageView1.isLoading()) {
                 ColourAnalysis.warning('A visual is already loading!');
@@ -347,6 +332,38 @@
 
             gamutView1.imageDecodingCctf = value;
             imageView1.imageDecodingCctf = value;
+        });
+
+        // Hiding the "imageDecodingCctfController" parent of parent container
+        // div accordingly to image file format.
+        var imageDecodingCctfDiv = imageDecodingCctfController.domElement.parentNode.parentNode;
+        if (ColourAnalysis.isLinearFileFormat(controls.image)) {
+            imageDecodingCctfDiv.style.display = 'none';
+        } else {
+            imageDecodingCctfDiv.style.display = '';
+        }
+        // "imageController" "onChange" logic is defined here because
+        // of cascading effects with "imageDecodingCctfController".
+        imageController.onChange(function (value) {
+            if (gamutView1.isLoading() || imageView1.isLoading()) {
+                ColourAnalysis.warning('A visual is already loading!');
+                controls.image = gamutView1.image;
+
+                var keys = ColourAnalysis.dropdownOptions(imageController);
+                imageController.domElement.children[0].selectedIndex = keys.indexOf(
+                    controls.image
+                );
+                return;
+            }
+
+            if (ColourAnalysis.isLinearFileFormat(controls.image)) {
+                imageDecodingCctfDiv.style.display = 'none';
+            } else {
+                imageDecodingCctfDiv.style.display = '';
+            }
+
+            gamutView1.image = value;
+            imageView1.image = value;
         });
 
         // Out of Primary Colourspace Gamut
