@@ -19,7 +19,7 @@ from werkzeug.contrib.cache import SimpleCache
 from colour import (Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
                     POINTER_GAMUT_DATA, POINTER_GAMUT_ILLUMINANT,
                     OETFS_REVERSE, RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ,
-                    XYZ_to_RGB, read_image)
+                    XYZ_to_RGB, XYZ_to_JzAzBz, XYZ_to_OSA_UCS, read_image)
 from colour.models import (XYZ_to_colourspace_model, function_gamma,
                            function_linear)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
@@ -38,7 +38,7 @@ __all__ = [
     'COLOURSPACE_MODELS', 'COLOURSPACE_MODELS_LABELS', 'DECODING_CCTFS',
     'PRIMARY_COLOURSPACE', 'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE',
     'IMAGE_DECODING_CCTF', 'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
-    'colourspace_model_axis_reorder', 'colourspace_model_faces_reorder',
+    'XYZ_to_colourspace_model_normalised','colourspace_model_axis_reorder', 'colourspace_model_faces_reorder',
     'decoding_cctfs', 'colourspace_models', 'RGB_colourspaces',
     'buffer_geometry', 'create_plane', 'create_box', 'image_data',
     'RGB_colourspace_volume_visual', 'spectral_locus_visual',
@@ -228,6 +228,46 @@ def load_image(path, decoding_cctf='sRGB'):
         IMAGE_CACHE.set(key, RGB)
 
     return RGB
+
+
+def XYZ_to_colourspace_model_normalised(XYZ, illuminant, model, **kwargs):
+    """
+    Converts from *CIE XYZ* tristimulus values to given colourspace model while
+    normalising for visual convenience some of the models.
+
+    Parameters
+    ----------
+    XYZ : array_like
+        *CIE XYZ* tristimulus values.
+    illuminant : array_like
+        *CIE XYZ* tristimulus values *illuminant* *xy* chromaticity
+        coordinates.
+    model : unicode
+        **{'CIE XYZ', 'CIE xyY', 'CIE xy', 'CIE Lab', 'CIE LCHab', 'CIE Luv',
+        'CIE Luv uv', 'CIE LCHuv', 'CIE UCS', 'CIE UCS uv', 'CIE UVW',
+        'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz, 'OSA UCS',
+        'hdr-CIELAB', 'hdr-IPT'}**,
+        Colourspace model to convert the *CIE XYZ* tristimulus values to.
+
+    Other Parameters
+    ----------------
+    \**kwargs : dict, optional
+        Keywords arguments.
+
+    Returns
+    -------
+    ndarray
+        Colourspace model values.
+    """
+
+    ijk = XYZ_to_colourspace_model(XYZ, illuminant, model, **kwargs)
+
+    if model == 'JzAzBz':
+        ijk /= XYZ_to_JzAzBz([1, 1, 1])[0]
+    if model == 'OSA UCS':
+        ijk /= XYZ_to_OSA_UCS([1, 1, 1])[0]
+
+    return ijk
 
 
 def colourspace_model_axis_reorder(a, model=None):
@@ -723,8 +763,8 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
     XYZ = RGB_to_XYZ(vertices, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
     vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
-                                 colourspace_model), colourspace_model)
+        XYZ_to_colourspace_model_normalised(
+            XYZ, colourspace.whitepoint, colourspace_model), colourspace_model)
 
     return buffer_geometry(position=vertices, color=RGB, index=faces)
 
@@ -816,8 +856,8 @@ def RGB_image_scatter_visual(path,
     XYZ = RGB_to_XYZ(RGB, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
     vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
-                                 colourspace_model), colourspace_model)
+        XYZ_to_colourspace_model_normalised(
+            XYZ, colourspace.whitepoint, colourspace_model), colourspace_model)
 
     if out_of_primary_colourspace_gamut or out_of_secondary_colourspace_gamut:
         RGB = np.ones(RGB.shape)
@@ -856,8 +896,8 @@ def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
     XYZ = np.vstack((XYZ, XYZ[0, ...]))
 
     vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
-                                 colourspace_model), colourspace_model)
+        XYZ_to_colourspace_model_normalised(
+            XYZ, colourspace.whitepoint, colourspace_model), colourspace_model)
 
     RGB = normalise_maximum(
         XYZ_to_RGB(XYZ, colourspace.whitepoint, colourspace.whitepoint,
@@ -886,7 +926,7 @@ def pointer_gamut_visual(colourspace_model='CIE xyY'):
     vertices = []
     for i in range(16):
         section = colourspace_model_axis_reorder(
-            XYZ_to_colourspace_model(
+            XYZ_to_colourspace_model_normalised(
                 np.vstack((pointer_gamut_data[i],
                            pointer_gamut_data[i][0, ...])),
                 POINTER_GAMUT_ILLUMINANT, colourspace_model),
