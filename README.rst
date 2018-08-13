@@ -26,6 +26,9 @@ Run
 
     $ docker run -d \
     --name=colour-analysis \
+    -e COLOUR_ANALYSIS_JS=https://gitcdn.link/repo/colour-science/colour-analysis-three.js/master/dist/colour-analysis.js \
+    -e COLOUR_ANALYSIS_POSITION_DTYPE=Float16 \
+    -e COLOUR_ANALYSIS_COLOUR_DTYPE=Float16 \
     -v $IMAGES_DIRECTORY:/home/colour-analysis/static/images
     -p 8020:5000 colourscience/colour-analysis
 

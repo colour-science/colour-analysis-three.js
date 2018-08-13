@@ -23,7 +23,8 @@ from colour import (Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
 from colour.models import (XYZ_to_colourspace_model, function_gamma,
                            function_linear)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
-from colour.utilities import first_item, normalise_maximum, tsplit, tstack
+from colour.utilities import (CaseInsensitiveMapping, first_item,
+                              normalise_maximum, tsplit, tstack)
 
 __author__ = 'Colour Developers'
 __copyright__ = 'Copyright (C) 2018 - Colour Developers'
@@ -33,10 +34,10 @@ __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
 
 __all__ = [
-    'LINEAR_FILE_FORMATS', 'DEFAULT_FLOAT_DTYPE', 'COLOURSPACE_MODELS',
-    'COLOURSPACE_MODELS_LABELS', 'DECODING_CCTFS', 'PRIMARY_COLOURSPACE',
-    'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE', 'IMAGE_DECODING_CCTF',
-    'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
+    'LINEAR_FILE_FORMATS', 'DTYPE_MAPPING', 'POSITION_DTYPE', 'COLOUR_DTYPE',
+    'COLOURSPACE_MODELS', 'COLOURSPACE_MODELS_LABELS', 'DECODING_CCTFS',
+    'PRIMARY_COLOURSPACE', 'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE',
+    'IMAGE_DECODING_CCTF', 'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
     'colourspace_model_axis_reorder', 'colourspace_model_faces_reorder',
     'decoding_cctfs', 'colourspace_models', 'RGB_colourspaces',
     'buffer_geometry', 'create_plane', 'create_box', 'image_data',
@@ -51,12 +52,36 @@ Assumed linear image formats.
 LINEAR_IMAGE_FORMATS : tuple
 """
 
-DEFAULT_FLOAT_DTYPE = np.float16
+DTYPE_MAPPING = CaseInsensitiveMapping({
+    'Float16': np.float16,
+    'Float32': np.float32,
+    'Float64': np.float64,
+})
 """
-Default floating point number dtype. Float16 is chosen over Float32 because it
-is lighter and thus more adapted to send data from the server to client.
+Dtype mapping.
 
-DEFAULT_FLOAT_DTYPE : type
+DTYPE_MAPPING : CaseInsensitiveMapping
+    **{'Float16', 'Float32', 'Float64'}**
+"""
+
+POSITION_DTYPE = DTYPE_MAPPING.get(
+    os.environ.get('COLOUR_ANALYSIS_POSITION_DTYPE', 'Float32'))
+"""
+Default floating point number dtype for visual data except colour. Float32 is
+usually chosen over Float16 or Float64 as a good compromise between precision
+and data size.
+
+POSITION_DTYPE : type
+"""
+
+COLOUR_DTYPE = DTYPE_MAPPING.get(
+    os.environ.get('COLOUR_ANALYSIS_COLOUR_DTYPE', 'Float16'))
+"""
+Default floating point number dtype for visual colour and image data. Float16
+is usually chosen over Float32 and Float64 because it is lighter and thus more
+adapted to send data from the server to client.
+
+COLOUR_DTYPE : type
 """
 
 COLOURSPACE_MODELS = ('CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS',
@@ -346,18 +371,19 @@ BufferGeometryLoader>`_.
     for attribute, values in kwargs.items():
         values = np.asarray(values)
         shape = values.shape
-        dtype = values.dtype
+        dtype = values.dtype.name
 
         values = np.ravel(values)
 
-        if 'float' in dtype.name:
-            values = np.nan_to_num(
-                np.around(values,
-                          np.finfo(DEFAULT_FLOAT_DTYPE).precision))
+        if 'float' in dtype:
+            dtype = (COLOUR_DTYPE if attribute == 'color' else POSITION_DTYPE)
+            values = np.around(values, np.finfo(dtype).precision)
+            values = np.nan_to_num(values)
+            dtype = np.dtype(dtype).name
 
         data['data']['attributes'][attribute] = {
             'itemSize': shape[-1],
-            'type': data_types_conversion[dtype.name],
+            'type': data_types_conversion[dtype],
             'array': values.tolist()
         }
 
@@ -647,7 +673,7 @@ def image_data(path,
 
     shape = RGB.shape
     RGB = np.ravel(RGB[..., 0:3].reshape(-1, 3))
-    RGB = np.around(RGB, np.finfo(DEFAULT_FLOAT_DTYPE).precision)
+    RGB = np.around(RGB, np.finfo(COLOUR_DTYPE).precision)
 
     return json.dumps({
         'width': shape[1],
