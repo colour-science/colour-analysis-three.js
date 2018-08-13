@@ -1,6 +1,10 @@
 import { Visual } from './visual.js';
 import { loadingCallback, serverRoute } from '../common.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class ImageVisual extends Visual {
     constructor(parent, settings) {
         super(parent, { ...{ name: 'image-visual' }, ...settings });

@@ -1,3 +1,7 @@
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 function serverRoute(route) {
     if (window.colourAnalysisServer != undefined) {
         return `${window.colourAnalysisServer}${route}`;

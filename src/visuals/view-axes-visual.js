@@ -1,6 +1,10 @@
 import { Visual } from './visual.js';
 import { loadingCallback, rotateToWorld, serverRoute } from '../common.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class ViewAxesVisual extends Visual {
     constructor(view, settings) {
         super(view.camera, { ...{ name: 'view-axes-visual' }, ...settings });

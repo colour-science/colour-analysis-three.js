@@ -1,5 +1,9 @@
 import { View } from './view.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class PerspectiveView extends View {
     constructor(container, settings) {
         super(container, settings);
