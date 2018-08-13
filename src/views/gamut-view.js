@@ -1,10 +1,13 @@
 import { PerspectiveView } from './perspective-view.js';
 import { ViewAxesVisual } from '../visuals/view-axes-visual.js';
-
 import { ColourspaceVisual } from '../visuals/colourspace-visual.js';
 import { ImageScatterVisual } from '../visuals/image-scatter-visual.js';
 import { PointerGamutVisual } from '../visuals/pointer-gamut-visual.js';
 import { SpectralLocusVisual } from '../visuals/spectral-locus-visual.js';
+
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
 
 class GamutView extends PerspectiveView {
     constructor(container, settings) {

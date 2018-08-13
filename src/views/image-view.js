@@ -1,6 +1,10 @@
 import { OrthographicView } from './orthographic-view.js';
 import { ImageVisual } from '../visuals/image-visual.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class ImageView extends OrthographicView {
     constructor(container, settings) {
         super(container, settings);

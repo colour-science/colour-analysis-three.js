@@ -1,6 +1,10 @@
 import { Visual } from './visual.js';
 import { serverRoute } from '../common.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class PointerGamutVisual extends Visual {
     constructor(parent, settings) {
         super(parent, { ...{ name: 'pointer-gamut-visual' }, ...settings });

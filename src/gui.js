@@ -1,3 +1,7 @@
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 // https://stackoverflow.com/a/45699568/931625
 function updateDropdown(controls, attribute, dropdown, value, options) {
     if (options.constructor.name == 'Array') {
