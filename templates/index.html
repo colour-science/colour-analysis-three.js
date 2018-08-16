@@ -191,6 +191,7 @@
                 this.imageDecodingCctf = imageDecodingCctf;
                 this.outOfPrimaryColourspaceGamut = false;
                 this.outOfSecondaryColourspaceGamut = false;
+                this.outOfPointerGamut = false;
 
                 this.primaryColourspace = primaryColourspace;
                 this.primaryColourspaceVisualWireframe = false;
@@ -402,6 +403,24 @@
                 gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut = value;
                 imageView1.imageOverlayVisual.outOfSecondaryColourspaceGamut = value;
             });
+
+        // Out of Pointer's Gamut
+        var outOfPointerGamutController = overallFolder
+            .add(controls, 'outOfPointerGamut')
+            .name('Out of Pointer\'s Gamut')
+            .onChange(function (value) {
+                if (gamutView1.isLoading() || imageView1.isLoading()) {
+                    ColourAnalysis.warning('A visual is already loading!');
+                    controls.outOfPointerGamut =
+                        gamutView1.imageScatterOverlayVisual.outOfPointerGamut;
+                    outOfPointerGamutController.updateDisplay();
+                    return;
+                }
+
+                gamutView1.imageScatterOverlayVisual.outOfPointerGamut = value;
+                imageView1.imageOverlayVisual.outOfPointerGamut = value;
+            });
+
         // imageScatterFolder
         //     .add(controls, 'imageScatterVisualSaturate')
         //     .name('Clamp')

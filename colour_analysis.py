@@ -19,7 +19,8 @@ from werkzeug.contrib.cache import SimpleCache
 from colour import (Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
                     POINTER_GAMUT_DATA, POINTER_GAMUT_ILLUMINANT,
                     OETFS_REVERSE, RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ,
-                    XYZ_to_RGB, XYZ_to_JzAzBz, XYZ_to_OSA_UCS, read_image)
+                    XYZ_to_RGB, XYZ_to_JzAzBz, XYZ_to_OSA_UCS,
+                    is_within_pointer_gamut, read_image)
 from colour.models import (XYZ_to_colourspace_model, function_gamma,
                            function_linear)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
@@ -38,10 +39,10 @@ __all__ = [
     'COLOURSPACE_MODELS', 'COLOURSPACE_MODELS_LABELS', 'DECODING_CCTFS',
     'PRIMARY_COLOURSPACE', 'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE',
     'IMAGE_DECODING_CCTF', 'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
-    'XYZ_to_colourspace_model_normalised','colourspace_model_axis_reorder', 'colourspace_model_faces_reorder',
-    'decoding_cctfs', 'colourspace_models', 'RGB_colourspaces',
-    'buffer_geometry', 'create_plane', 'create_box', 'image_data',
-    'RGB_colourspace_volume_visual', 'spectral_locus_visual',
+    'XYZ_to_colourspace_model_normalised', 'colourspace_model_axis_reorder',
+    'colourspace_model_faces_reorder', 'decoding_cctfs', 'colourspace_models',
+    'RGB_colourspaces', 'buffer_geometry', 'create_plane', 'create_box',
+    'image_data', 'RGB_colourspace_volume_visual', 'spectral_locus_visual',
     'RGB_image_scatter_visual', 'pointer_gamut_visual'
 ]
 
@@ -647,6 +648,7 @@ def image_data(path,
                image_decoding_cctf=IMAGE_DECODING_CCTF,
                out_of_primary_colourspace_gamut=False,
                out_of_secondary_colourspace_gamut=False,
+               out_of_pointer_gamut=False,
                saturate=False):
     """
     Returns given image RGB data or its out of gamut values formatted as
@@ -673,7 +675,9 @@ def image_data(path,
         values.
     out_of_secondary_colourspace_gamut : bool, optional
         Whether to only generate the out of secondary RGB colourspace gamut
-        value.
+        values.
+    out_of_pointer_gamut : bool, optional
+        Whether to only generate the out of *Pointer's Gamut* values.
     saturate : bool, optional
         Whether to clip the image in domain [0, 1].
 
@@ -689,6 +693,9 @@ def image_data(path,
     secondary_colourspace = first_item(
         filter_RGB_colourspaces('^{0}$'.format(
             re.escape(secondary_colourspace))))
+
+    colourspace = (primary_colourspace if image_colourspace == 'Primary' else
+                   secondary_colourspace)
 
     RGB = load_image(path, image_decoding_cctf)
 
@@ -710,6 +717,14 @@ def image_data(path,
         RGB[np.logical_and(RGB >= 0, RGB <= 1)] = 0
         RGB[RGB != 0] = 1
         RGB[np.any(RGB == 1, axis=-1)] = 1
+
+    if out_of_pointer_gamut:
+        O_PG = is_within_pointer_gamut(
+            RGB_to_XYZ(RGB, colourspace.whitepoint, colourspace.whitepoint,
+                       colourspace.RGB_to_XYZ_matrix)).astype(np.int_)
+        O_PG = 1 - O_PG
+        RGB[O_PG != 1] = 0
+        RGB[O_PG == 1] = 1
 
     shape = RGB.shape
     RGB = np.ravel(RGB[..., 0:3].reshape(-1, 3))
@@ -777,6 +792,7 @@ def RGB_image_scatter_visual(path,
                              colourspace_model=COLOURSPACE_MODEL,
                              out_of_primary_colourspace_gamut=False,
                              out_of_secondary_colourspace_gamut=False,
+                             out_of_pointer_gamut=False,
                              sub_sampling=25,
                              saturate=False):
     """
@@ -807,6 +823,8 @@ def RGB_image_scatter_visual(path,
     out_of_secondary_colourspace_gamut : bool, optional
         Whether to only generate the out of secondary RGB colourspace gamut
         visual geometry.
+    out_of_pointer_gamut : bool, optional
+        Whether to only generate the out of *Pointer's Gamut* visual geometry.
     sub_sampling : int, optional
         Consider every ``sub_sampling`` pixels of the image to generate the
         visual geometry. Using a low number will yield a large quantity of
@@ -853,13 +871,22 @@ def RGB_image_scatter_visual(path,
 
         RGB = RGB[np.any(np.logical_or(RGB_c < 0, RGB_c > 1), axis=-1)]
 
+    if out_of_pointer_gamut:
+        O_PG = is_within_pointer_gamut(
+            RGB_to_XYZ(RGB, colourspace.whitepoint, colourspace.whitepoint,
+                       colourspace.RGB_to_XYZ_matrix)).astype(np.int_)
+        O_PG = 1 - O_PG
+        RGB = RGB[O_PG == 1]
+
     XYZ = RGB_to_XYZ(RGB, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
+
     vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model_normalised(
             XYZ, colourspace.whitepoint, colourspace_model), colourspace_model)
 
-    if out_of_primary_colourspace_gamut or out_of_secondary_colourspace_gamut:
+    if (out_of_primary_colourspace_gamut or
+            out_of_secondary_colourspace_gamut or out_of_pointer_gamut):
         RGB = np.ones(RGB.shape)
 
     return buffer_geometry(position=vertices, color=RGB)

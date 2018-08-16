@@ -241,6 +241,8 @@ def image_data_response(image):
             args.get('outOfPrimaryColourspaceGamut', False)),
         out_of_secondary_colourspace_gamut=_bool_to_bool(
             args.get('outOfSecondaryColourspaceGamut', False)),
+        out_of_pointer_gamut=_bool_to_bool(
+            args.get('outOfPointerGamut', False)),
         saturate=_bool_to_bool(args.get('saturate', False)))
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -303,6 +305,8 @@ def RGB_image_scatter_visual_response(image):
             args.get('outOfPrimaryColourspaceGamut', False)),
         out_of_secondary_colourspace_gamut=_bool_to_bool(
             args.get('outOfSecondaryColourspaceGamut', False)),
+        out_of_pointer_gamut=_bool_to_bool(
+            args.get('outOfPointerGamut', False)),
         sub_sampling=int(args.get('subSampling', 25)),
         saturate=_bool_to_bool(args.get('saturate', False)),
     )
