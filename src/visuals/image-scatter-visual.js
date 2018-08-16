@@ -1,6 +1,10 @@
 import { Visual } from './visual.js';
 import { serverRoute } from '../common.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class ImageScatterVisual extends Visual {
     constructor(parent, settings) {
         super(parent, { ...{ name: 'image-scatter-visual' }, ...settings });
@@ -17,6 +21,7 @@ class ImageScatterVisual extends Visual {
             settings.outOfPrimaryColourspaceGamut || false;
         this._outOfSecondaryColourspaceGamut =
             settings.outOfSecondaryColourspaceGamut || false;
+        this._outOfPointerGamut = settings.outOfPointerGamut || false;
         this._subSampling = settings.subSampling || 25;
         this._pointSize = settings.pointSize || 0.01;
         this._saturate = settings.saturate || false;
@@ -132,6 +137,15 @@ class ImageScatterVisual extends Visual {
         this.add();
     }
 
+    get outOfPointerGamut() {
+        return this._outOfPointerGamut;
+    }
+
+    set outOfPointerGamut(value) {
+        this._outOfPointerGamut = value;
+        this.add();
+    }
+
     get subSampling() {
         return this._subSampling;
     }
@@ -187,6 +201,7 @@ class ImageScatterVisual extends Visual {
                 `outOfSecondaryColourspaceGamut=${
                     this._outOfSecondaryColourspaceGamut
                 }&` +
+                `outOfPointerGamut=${this._outOfPointerGamut}&` +
                 `subSampling=${this._subSampling}&` +
                 `saturate=${this._saturate}&`
         );

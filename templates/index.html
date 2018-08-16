@@ -159,6 +159,7 @@
         );
         gamutView1.addViewAxesVisual();
         gamutView1.addSpectralLocusVisual();
+        gamutView1.addPointerGamutVisual();
         gamutView1.addSecondaryColourspaceVisual();
         gamutView1.addPrimaryColourspaceVisual();
         gamutView1.addImageScatterVisual();
@@ -190,6 +191,7 @@
                 this.imageDecodingCctf = imageDecodingCctf;
                 this.outOfPrimaryColourspaceGamut = false;
                 this.outOfSecondaryColourspaceGamut = false;
+                this.outOfPointerGamut = false;
 
                 this.primaryColourspace = primaryColourspace;
                 this.primaryColourspaceVisualWireframe = false;
@@ -207,6 +209,8 @@
                 this.imageScatterVisualSaturate = false;
 
                 this.spectralLocusVisualVisible = true;
+
+                this.pointerGamutVisualVisible = true;
             }
         }
 
@@ -399,6 +403,24 @@
                 gamutView1.imageScatterOverlayVisual.outOfSecondaryColourspaceGamut = value;
                 imageView1.imageOverlayVisual.outOfSecondaryColourspaceGamut = value;
             });
+
+        // Out of Pointer's Gamut
+        var outOfPointerGamutController = overallFolder
+            .add(controls, 'outOfPointerGamut')
+            .name('Out of Pointer\'s Gamut')
+            .onChange(function (value) {
+                if (gamutView1.isLoading() || imageView1.isLoading()) {
+                    ColourAnalysis.warning('A visual is already loading!');
+                    controls.outOfPointerGamut =
+                        gamutView1.imageScatterOverlayVisual.outOfPointerGamut;
+                    outOfPointerGamutController.updateDisplay();
+                    return;
+                }
+
+                gamutView1.imageScatterOverlayVisual.outOfPointerGamut = value;
+                imageView1.imageOverlayVisual.outOfPointerGamut = value;
+            });
+
         // imageScatterFolder
         //     .add(controls, 'imageScatterVisualSaturate')
         //     .name('Clamp')
@@ -539,6 +561,15 @@
             .name('Visible')
             .onChange(function (value) {
                 gamutView1.spectralLocusVisual.visible = value;
+            });
+
+        /*** Pointer's Gamut ***/
+        var pointerGamutFolder = gui.addFolder('Pointer\'s Gamut');
+        pointerGamutFolder
+            .add(controls, 'pointerGamutVisualVisible')
+            .name('Visible')
+            .onChange(function (value) {
+                gamutView1.pointerGamutVisual.visible = value;
             });
     </script>
 

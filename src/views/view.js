@@ -1,5 +1,9 @@
 import { removeObjectByName } from '../common.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class View {
     constructor(container, settings) {
         this._container = container;

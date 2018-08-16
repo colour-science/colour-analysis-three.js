@@ -1,6 +1,10 @@
 import { Visual } from './visual.js';
 import { loadingCallback, serverRoute } from '../common.js';
 
+/**
+ * @author Colour Developers / http://colour-science.org/
+ */
+
 class ImageVisual extends Visual {
     constructor(parent, settings) {
         super(parent, { ...{ name: 'image-visual' }, ...settings });
@@ -15,6 +19,7 @@ class ImageVisual extends Visual {
             settings.outOfPrimaryColourspaceGamut || false;
         this._outOfSecondaryColourspaceGamut =
             settings.outOfSecondaryColourspaceGamut || false;
+        this._outOfPointerGamut = settings.outOfPointerGamut || false;
         this._saturate = settings.saturate || false;
 
         this._depth = settings.depth || 0;
@@ -102,6 +107,15 @@ class ImageVisual extends Visual {
         this.add();
     }
 
+    get outOfPointerGamut() {
+        return this._outOfPointerGamut;
+    }
+
+    set outOfPointerGamut(value) {
+        this._outOfPointerGamut = value;
+        this.add();
+    }
+
     get saturate() {
         return this._saturate;
     }
@@ -140,6 +154,7 @@ class ImageVisual extends Visual {
                 `outOfSecondaryColourspaceGamut=${
                     this._outOfSecondaryColourspaceGamut
                 }&` +
+                `outOfPointerGamut=${this._outOfPointerGamut}&` +
                 `saturate=${this._saturate}`
         );
     }
