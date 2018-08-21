@@ -6,6 +6,9 @@ Invoke - Tasks
 
 from __future__ import print_function, unicode_literals
 
+import fileinput
+import re
+import sys
 from invoke import task
 from invoke.exceptions import Failure
 
@@ -21,8 +24,8 @@ __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
 
 __all__ = [
-    'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'formatting',
-    'npm_build', 'docker_build', 'docker_remove', 'docker_run'
+    'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'formatting', 'npm_build',
+    'docker_build', 'docker_remove', 'docker_run'
 ]
 
 APPLICATION_NAME = app.__application_name__
@@ -81,6 +84,7 @@ def formatting(ctx, yapf=False):
         message_box('Formatting codebase with "Yapf"...')
         ctx.run('yapf -p -i -r .')
 
+
 @task
 def npm_build(ctx):
     """
@@ -98,6 +102,14 @@ def npm_build(ctx):
     """
 
     message_box('Building "npm" package...')
+    for package_file in ('package.json', 'package-lock.json'):
+        version_found = False
+        for line in fileinput.input(package_file, inplace=True):
+            if re.match('\s*"version": "[\w.]+",', line) and not version_found:
+                line = '  "version": "{0}",\n'.format(app.__version__)
+                version_found = True
+
+            sys.stdout.write(line)
 
     ctx.run('npm run build')
 
