@@ -19,7 +19,8 @@ from colour_analysis import (
     COLOURSPACE_MODEL, IMAGE_COLOURSPACE, IMAGE_DECODING_CCTF,
     PRIMARY_COLOURSPACE, RGB_colourspaces, RGB_colourspace_volume_visual,
     RGB_image_scatter_visual, SECONDARY_COLOURSPACE, colourspace_models,
-    decoding_cctfs, pointer_gamut_visual, spectral_locus_visual, image_data)
+    decoding_cctfs, image_data, pointer_gamut_visual, spectral_locus_visual,
+    visible_spectrum_visual)
 
 __author__ = 'Colour Developers'
 __copyright__ = 'Copyright (C) 2018 - Colour Developers'
@@ -32,7 +33,7 @@ __application_name__ = 'Colour - Analysis'
 
 __major_version__ = '0'
 __minor_version__ = '1'
-__change_version__ = '2'
+__change_version__ = '3'
 __version__ = '.'.join(
     (__major_version__,
      __minor_version__,
@@ -45,7 +46,7 @@ __all__ = [
     'colourspace_models_response', 'RGB_colourspaces_response',
     'image_data_response', 'RGB_colourspace_volume_visual_response',
     'RGB_image_scatter_visual_response', 'spectral_locus_visual_response',
-    'pointer_gamut_response', 'index', 'after_request'
+    'pointer_gamut_visual_response', 'index', 'after_request'
 ]
 
 APP = Flask(__name__)
@@ -343,7 +344,7 @@ def spectral_locus_visual_response():
 
 @APP.route('/pointer-gamut-visual')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
-def pointer_gamut_response():
+def pointer_gamut_visual_response():
     """
     Returns a *Pointer's Gamut* visual response.
 
@@ -355,6 +356,28 @@ def pointer_gamut_response():
 
     args = request.args
     json_data = pointer_gamut_visual(
+        colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL), )
+
+    response = Response(json_data, status=200, mimetype='application/json')
+    response.headers['X-Content-Length'] = len(json_data)
+
+    return response
+
+
+@APP.route('/visible-spectrum-visual')
+@CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
+def visible_spectrum_visual_response():
+    """
+    Returns the visible spectrum visual response.
+
+    Returns
+    -------
+    Response
+        visible spectrum visual response.
+    """
+
+    args = request.args
+    json_data = visible_spectrum_visual(
         colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL), )
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -400,4 +423,4 @@ def after_request(response):
 
 if __name__ == '__main__':
     with domain_range_scale(1):
-        APP.run(debug=True)
+        APP.run()

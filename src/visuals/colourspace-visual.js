@@ -52,7 +52,11 @@ class ColourspaceVisual extends Visual {
 
     set uniformColour(value) {
         this._uniformColour = value;
-        this.add();
+        Object.keys(this.cache).forEach(
+            function(key) {
+                this.cache[key].material.color = new THREE.Color(value);
+            }.bind(this)
+        );
     }
 
     get uniformOpacity() {
