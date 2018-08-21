@@ -10,7 +10,7 @@ class PointerGamutVisual extends Visual {
         super(parent, { ...{ name: 'pointer-gamut-visual' }, ...settings });
 
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
-        this._uniformColour = settings.uniformColour || undefined;
+        this._uniformColour = settings.uniformColour || 0x4fc3f7;
         this._uniformOpacity = settings.uniformOpacity || 0.75;
     }
 
@@ -29,7 +29,11 @@ class PointerGamutVisual extends Visual {
 
     set uniformColour(value) {
         this._uniformColour = value;
-        this.add();
+        Object.keys(this.cache).forEach(
+            function(key) {
+                this.cache[key].material.color = new THREE.Color(value);
+            }.bind(this)
+        );
     }
 
     get uniformOpacity() {
@@ -54,7 +58,7 @@ class PointerGamutVisual extends Visual {
 
     create(geometry) {
         var material = new THREE.LineBasicMaterial({
-            vertexColors: THREE.VertexColors,
+            color: this._uniformColour,
             transparent: true,
             opacity: this._uniformOpacity
         });

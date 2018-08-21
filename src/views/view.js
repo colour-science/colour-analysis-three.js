@@ -33,6 +33,7 @@ class View {
         this._observer.observe(this._container, {
             attributes: true
         });
+
         window.addEventListener(
             'resize',
             this.resizeToContainer.bind(this),
@@ -62,6 +63,11 @@ class View {
 
     set scene(value) {
         throw new Error('"scene" property is read only!');
+    }
+
+    capture(){
+        this.render();
+        return this._renderer.domElement.toDataURL('image/png');
     }
 
     removeObjectByName(name) {

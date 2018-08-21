@@ -5,23 +5,13 @@ import { serverRoute } from '../common.js';
  * @author Colour Developers / http://colour-science.org/
  */
 
-class SpectralLocusVisual extends Visual {
+class VisibleSpectrumVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...{ name: 'spectral-locus-visual' }, ...settings });
+        super(parent, { ...{ name: 'visible-spectrum-visual' }, ...settings });
 
-        this._colourspace = settings.colourspace || 'sRGB';
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
-        this._uniformColour = settings.uniformColour || undefined;
+        this._uniformColour = settings.uniformColour || 0xffa726;
         this._uniformOpacity = settings.uniformOpacity || 0.75;
-    }
-
-    get colourspace() {
-        return this._colourspace;
-    }
-
-    set colourspace(value) {
-        this._colourspace = value;
-        this.add();
     }
 
     get colourspaceModel() {
@@ -61,20 +51,19 @@ class SpectralLocusVisual extends Visual {
 
     route() {
         return serverRoute(
-            `/spectral-locus-visual?` +
-            `colourspace=${encodeURIComponent(this._colourspace)}&` +
+            `/visible-spectrum-visual?` +
             `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&`
         );
     }
 
     create(geometry) {
         var material = new THREE.LineBasicMaterial({
-            vertexColors: THREE.VertexColors,
+            color: this._uniformColour,
             transparent: true,
             opacity: this._uniformOpacity
         });
 
-        var visual = new THREE.Line(geometry, material);
+        var visual = new THREE.LineSegments(geometry, material);
         visual.name = this.name;
         visual.visible = this.visible;
 
@@ -82,4 +71,4 @@ class SpectralLocusVisual extends Visual {
     }
 }
 
-export { SpectralLocusVisual };
+export { VisibleSpectrumVisual };

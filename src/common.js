@@ -126,6 +126,19 @@ function isLinearFileFormat(path) {
     }
 }
 
+var saveFile = function(data, filename) {
+    var link = document.createElement('a');
+    if (typeof link.download === 'string') {
+        document.body.appendChild(link);
+        link.download = filename;
+        link.href = data;
+        link.click();
+        document.body.removeChild(link);
+    } else {
+        location.replace(uri);
+    }
+};
+
 export {
     serverRoute,
     removeObjectByName,
@@ -135,5 +148,6 @@ export {
     info,
     warning,
     loadingCallback,
-    isLinearFileFormat
+    isLinearFileFormat,
+    saveFile
 };
