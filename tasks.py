@@ -132,8 +132,10 @@ def docker_build(ctx):
 
     message_box('Building "docker" image...')
 
-    ctx.run('docker build -t {0}/{1}:latest -t {0}/{1}:v{2} .'.format(
-        ORG, CONTAINER, app.__version__))
+    ctx.run('docker build '
+            '--build-arg CACHE_DATE="$(date)" '
+            '-t {0}/{1}:latest -t {0}/{1}:v{2} .'.format(
+                ORG, CONTAINER, app.__version__))
 
 
 @task
