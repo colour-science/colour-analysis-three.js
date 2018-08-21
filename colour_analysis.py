@@ -16,7 +16,7 @@ import re
 from collections import OrderedDict
 from werkzeug.contrib.cache import SimpleCache
 
-from colour import (Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
+from colour import (ILLUMINANTS, Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
                     POINTER_GAMUT_DATA, POINTER_GAMUT_ILLUMINANT,
                     OETFS_REVERSE, RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ,
                     XYZ_to_RGB, XYZ_to_JzAzBz, XYZ_to_OSA_UCS,
@@ -26,6 +26,7 @@ from colour.models import (XYZ_to_colourspace_model, function_gamma,
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
 from colour.utilities import (CaseInsensitiveMapping, first_item,
                               normalise_maximum, tsplit, tstack)
+from colour.volume import XYZ_outer_surface
 
 __author__ = 'Colour Developers'
 __copyright__ = 'Copyright (C) 2018 - Colour Developers'
@@ -43,7 +44,8 @@ __all__ = [
     'colourspace_model_faces_reorder', 'decoding_cctfs', 'colourspace_models',
     'RGB_colourspaces', 'buffer_geometry', 'create_plane', 'create_box',
     'image_data', 'RGB_colourspace_volume_visual', 'spectral_locus_visual',
-    'RGB_image_scatter_visual', 'pointer_gamut_visual'
+    'RGB_image_scatter_visual', 'pointer_gamut_visual',
+    'visible_spectrum_visual'
 ]
 
 LINEAR_FILE_FORMATS = ('.exr', '.hdr')
@@ -963,6 +965,30 @@ def pointer_gamut_visual(colourspace_model='CIE xyY'):
 
     vertices = np.asarray(vertices)
 
-    RGB = np.ones(vertices.shape)
+    return buffer_geometry(position=vertices)
 
-    return buffer_geometry(position=vertices, color=RGB)
+
+def visible_spectrum_visual(colourspace_model='CIE xyY'):
+    """
+    Returns the visible spectrum visual geometry formatted as *JSON*.
+
+    Parameters
+    ----------
+    colourspace_model : unicode, optional
+        Colourspace model used to generate the visual geometry.
+
+    Returns
+    -------
+    unicode
+        Visible spectrum visual geometry formatted as *JSON*.
+    """
+
+    XYZ = XYZ_outer_surface()
+    vertices = colourspace_model_axis_reorder(
+        XYZ_to_colourspace_model_normalised(
+            XYZ, ILLUMINANTS['CIE 1931 2 Degree Standard Observer']['E'],
+            colourspace_model), colourspace_model)
+
+    vertices = np.array(zip(vertices, vertices[1:]))
+
+    return buffer_geometry(position=vertices)

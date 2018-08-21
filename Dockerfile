@@ -34,6 +34,9 @@ RUN /opt/conda/bin/conda install -y \
     matplotlib \
     scipy \
     six
+
+ARG CACHE_DATE
+
 RUN pip install \
     gunicorn \
     Flask-Caching \
