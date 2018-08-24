@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { View } from './view.js';
 
 /**
@@ -8,16 +9,16 @@ class OrthographicView extends View {
     constructor(container, settings) {
         super(container, settings);
 
-        settings = {
-            ...{
+        settings = merge(
+            {
                 camera: {
-                    up: new THREE.Vector3(0, 1, 0),
+                    up: { x: 0, y: 1, z: 0 },
                     near: 0.001,
                     far: 1000
                 }
             },
-            ...settings
-        };
+            settings || {}
+        );
 
         var aspectRatio =
             this.container.clientWidth / this.container.clientHeight;
@@ -30,7 +31,11 @@ class OrthographicView extends View {
             settings.camera.far
         );
         this._camera.name = 'orthographic-camera';
-        this._camera.up = settings.camera.up;
+        this._camera.up = new THREE.Vector3(
+            settings.camera.up.x,
+            settings.camera.up.y,
+            settings.camera.up.z
+        );
 
         this._scene.add(this._camera);
 

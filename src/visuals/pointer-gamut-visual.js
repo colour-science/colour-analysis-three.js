@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { Visual } from './visual.js';
 import { serverRoute } from '../common.js';
 
@@ -7,7 +8,7 @@ import { serverRoute } from '../common.js';
 
 class PointerGamutVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...{ name: 'pointer-gamut-visual' }, ...settings });
+        super(parent, merge({ name: 'pointer-gamut-visual' }, settings || {}));
 
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
         this._uniformColour = settings.uniformColour || 0x4fc3f7;

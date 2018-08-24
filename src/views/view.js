@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { removeObjectByName } from '../common.js';
 
 /**
@@ -8,12 +9,12 @@ class View {
     constructor(container, settings) {
         this._container = container;
 
-        settings = {
-            ...{
+        settings = merge(
+            {
                 renderer: { antialias: true }
             },
-            ...settings
-        };
+            settings || {}
+        );
 
         this._renderer = new THREE.WebGLRenderer({
             antialias: settings.renderer.antialias
@@ -65,7 +66,7 @@ class View {
         throw new Error('"scene" property is read only!');
     }
 
-    capture(){
+    capture() {
         this.render();
         return this._renderer.domElement.toDataURL('image/png');
     }

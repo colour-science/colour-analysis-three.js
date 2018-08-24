@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { Visual } from './visual.js';
 import { serverRoute } from '../common.js';
 
@@ -7,7 +8,10 @@ import { serverRoute } from '../common.js';
 
 class VisibleSpectrumVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...{ name: 'visible-spectrum-visual' }, ...settings });
+        super(
+            parent,
+            merge({ name: 'visible-spectrum-visual' }, settings || {})
+        );
 
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';
         this._uniformColour = settings.uniformColour || 0xffa726;
@@ -52,7 +56,9 @@ class VisibleSpectrumVisual extends Visual {
     route() {
         return serverRoute(
             `/visible-spectrum-visual?` +
-            `colourspaceModel=${encodeURIComponent(this._colourspaceModel)}&`
+                `colourspaceModel=${encodeURIComponent(
+                    this._colourspaceModel
+                )}&`
         );
     }
 

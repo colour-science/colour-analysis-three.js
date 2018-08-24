@@ -1,4 +1,5 @@
 import { View } from './view.js';
+import merge from 'deepmerge';
 
 /**
  * @author Colour Developers / http://colour-science.org/
@@ -8,17 +9,17 @@ class PerspectiveView extends View {
     constructor(container, settings) {
         super(container, settings);
 
-        settings = {
-            ...{
+        settings = merge(
+            {
                 camera: {
                     fov: 45,
-                    up: new THREE.Vector3(0, 1, 0),
+                    up: { x: 0, y: 1, z: 0 },
                     near: 0.001,
                     far: 1000
                 }
             },
-            ...settings
-        };
+            settings || {}
+        );
 
         this._camera = new THREE.PerspectiveCamera(
             settings.camera.fov,
@@ -27,11 +28,18 @@ class PerspectiveView extends View {
             settings.camera.far
         );
         this._camera.name = 'perspective-camera';
-        this._camera.up = settings.camera.up;
+        this._camera.up = new THREE.Vector3(
+            settings.camera.up.x,
+            settings.camera.up.y,
+            settings.camera.up.z
+        );
 
         this._scene.add(this._camera);
 
-        this._controls = new THREE.TrackballControls(this._camera, this.container);
+        this._controls = new THREE.TrackballControls(
+            this._camera,
+            this.container
+        );
     }
 
     get camera() {
