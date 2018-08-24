@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { Visual } from './visual.js';
 import { loadingCallback, rotateToWorld, serverRoute } from '../common.js';
 
@@ -7,7 +8,7 @@ import { loadingCallback, rotateToWorld, serverRoute } from '../common.js';
 
 class ViewAxesVisual extends Visual {
     constructor(view, settings) {
-        super(view.camera, { ...{ name: 'view-axes-visual' }, ...settings });
+        super(view.camera, merge({ name: 'view-axes-visual' }, settings || {}));
 
         this._view = view;
 
