@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { Visual } from './visual.js';
 import { loadingCallback, serverRoute } from '../common.js';
 
@@ -7,7 +8,7 @@ import { loadingCallback, serverRoute } from '../common.js';
 
 class ImageVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...{ name: 'image-visual' }, ...settings });
+        super(parent, merge({ name: 'image-visual' }, settings || {}));
 
         this._image = settings.image || 'Rose.ProPhoto.jpg';
         this._primaryColourspace = settings.primaryColourspace || 'sRGB';

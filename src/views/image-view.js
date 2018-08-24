@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { OrthographicView } from './orthographic-view.js';
 import { ImageVisual } from '../visuals/image-visual.js';
 
@@ -9,16 +10,16 @@ class ImageView extends OrthographicView {
     constructor(container, settings) {
         super(container, settings);
 
-        settings = {
-            ...{
+        settings = merge(
+            {
                 renderer: {
                     gammaOutput: true
                 },
                 scene: {
-                    background: new THREE.Color('#333333')
+                    background: '#333333'
                 },
-                camera: { position: new THREE.Vector3(0, 1, 0) },
-                controls: { target: new THREE.Vector3(0, 0, 0) },
+                camera: { position: { x: 0, y: 1, z: 0 } },
+                controls: { target: { x: 0, y: 0, z: 0 } },
                 image: 'Rose.ProPhoto.jpg',
                 primaryColourspace: 'sRGB',
                 secondaryColourspace: 'DCI-P3',
@@ -26,15 +27,25 @@ class ImageView extends OrthographicView {
                 imageDecodingCctf: 'sRGB',
                 colourspaceModel: 'CIE xyY'
             },
-            ...settings
-        };
+            settings || {}
+        );
 
         this.renderer.gammaOutput = settings.renderer.gammaOutput;
 
-        this.scene.background = settings.scene.background;
+        this.scene.background = new THREE.Color(settings.scene.background);
 
-        this.camera.position.copy(settings.camera.position);
-        this.controls.target = settings.controls.target;
+        this.camera.position.copy(
+            new THREE.Vector3(
+                settings.camera.position.x,
+                settings.camera.position.y,
+                settings.camera.position.z
+            )
+        );
+        this.controls.target = new THREE.Vector3(
+            settings.controls.target.x,
+            settings.controls.target.y,
+            settings.controls.target.z
+        );
 
         this._image = settings.image;
         this._primaryColourspace = settings.primaryColourspace;
@@ -155,25 +166,28 @@ class ImageView extends OrthographicView {
     }
 
     addImageVisual(settings) {
-        this._imageVisual = new ImageVisual(this._imageVisualGroup, {
-            ...{
-                name: 'image-visual',
-                image: this._image,
-                primaryColourspace: this._primaryColourspace,
-                secondaryColourspace: this._secondaryColourspace,
-                imageColourspace: this._imageColourspace,
-                imageDecodingCctf: this._imageDecodingCctf
-            },
-            ...settings
-        });
+        this._imageVisual = new ImageVisual(
+            this._imageVisualGroup,
+            merge(
+                {
+                    name: 'image-visual',
+                    image: this._image,
+                    primaryColourspace: this._primaryColourspace,
+                    secondaryColourspace: this._secondaryColourspace,
+                    imageColourspace: this._imageColourspace,
+                    imageDecodingCctf: this._imageDecodingCctf
+                },
+                settings || {}
+            )
+        );
         this._imageVisual.add();
     }
 
     addImageOverlayVisual(settings) {
         this._imageOverlayVisual = new ImageVisual(
             this._imageOverlayVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     name: 'image-overlay-visual',
                     image: this._image,
                     primaryColourspace: this._primaryColourspace,
@@ -183,8 +197,8 @@ class ImageView extends OrthographicView {
                     uniformOpacity: 0.5,
                     depth: 0.5
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._imageOverlayVisual.add();
     }

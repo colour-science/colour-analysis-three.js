@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { Visual } from './visual.js';
 import { serverRoute } from '../common.js';
 
@@ -7,7 +8,7 @@ import { serverRoute } from '../common.js';
 
 class ColourspaceVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...{ name: 'colourspace-visual' }, ...settings });
+        super(parent, merge({ name: 'colourspace-visual' }, settings || {}));
 
         this._colourspace = settings.colourspace || 'sRGB';
         this._colourspaceModel = settings.colourspaceModel || 'CIE xyY';

@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { Visual } from './visual.js';
 import { serverRoute } from '../common.js';
 
@@ -7,7 +8,7 @@ import { serverRoute } from '../common.js';
 
 class ImageScatterVisual extends Visual {
     constructor(parent, settings) {
-        super(parent, { ...{ name: 'image-scatter-visual' }, ...settings });
+        super(parent, merge({ name: 'image-scatter-visual' }, settings || {}));
 
         this._image = settings.image || 'Rose.ProPhoto.jpg';
         this._primaryColourspace = settings.primaryColourspace || 'sRGB';

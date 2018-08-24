@@ -1,3 +1,4 @@
+import merge from 'deepmerge';
 import { PerspectiveView } from './perspective-view.js';
 import { ViewAxesVisual } from '../visuals/view-axes-visual.js';
 import { ColourspaceVisual } from '../visuals/colourspace-visual.js';
@@ -14,18 +15,18 @@ class GamutView extends PerspectiveView {
     constructor(container, settings) {
         super(container, settings);
 
-        settings = {
-            ...{
+        settings = merge(
+            {
                 scene: {
-                    background: new THREE.Color('#333333')
+                    background: '#333333'
                 },
                 fog: {
                     enable: true,
                     color: '#333333',
                     density: 0.05
                 },
-                camera: { position: new THREE.Vector3(-3, 3, 3) },
-                controls: { target: new THREE.Vector3(1 / 3, 0.5, 1 / 3) },
+                camera: { position: { x: -3, y: 3, z: 3 } },
+                controls: { target: { x: 1 / 3, y: 0.5, z: 1 / 3 } },
                 grid: {
                     enable: true,
                     size: 2,
@@ -41,12 +42,12 @@ class GamutView extends PerspectiveView {
                 imageDecodingCctf: 'sRGB',
                 colourspaceModel: 'CIE xyY'
             },
-            ...settings
-        };
+            settings || {}
+        );
 
         this.renderer.sortObjects = false;
 
-        this.scene.background = settings.scene.background;
+        this.scene.background = new THREE.Color(settings.scene.background);
         if (settings.fog.enable) {
             this.scene.fog = new THREE.FogExp2(
                 settings.fog.color,
@@ -54,8 +55,18 @@ class GamutView extends PerspectiveView {
             );
         }
 
-        this.camera.position.copy(settings.camera.position);
-        this.controls.target = settings.controls.target;
+        this.camera.position.copy(
+            new THREE.Vector3(
+                settings.camera.position.x,
+                settings.camera.position.y,
+                settings.camera.position.z
+            )
+        );
+        this.controls.target = new THREE.Vector3(
+            settings.controls.target.x,
+            settings.controls.target.y,
+            settings.controls.target.z
+        );
 
         if (settings.grid.enable) {
             this.grid = new THREE.GridHelper(
@@ -329,24 +340,27 @@ class GamutView extends PerspectiveView {
     }
 
     addViewAxesVisual(settings) {
-        this._viewAxesVisual = new ViewAxesVisual(this, {
-            ...{
-                colourspaceModel: this._colourspaceModel
-            },
-            ...settings
-        });
+        this._viewAxesVisual = new ViewAxesVisual(
+            this,
+            merge(
+                {
+                    colourspaceModel: this._colourspaceModel
+                },
+                settings || {}
+            )
+        );
         this._viewAxesVisual.add();
     }
 
     addVisibleSpectrumVisual(settings) {
         this._visibleSpectrumVisual = new VisibleSpectrumVisual(
             this._visibleSpectrumVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     colourspaceModel: this._colourspaceModel
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._visibleSpectrumVisual.add();
     }
@@ -354,13 +368,13 @@ class GamutView extends PerspectiveView {
     addSpectralLocusVisual(settings) {
         this._spectralLocusVisual = new SpectralLocusVisual(
             this._spectralLocusVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     colourspace: this._secondaryColourspace,
                     colourspaceModel: this._colourspaceModel
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._spectralLocusVisual.add();
     }
@@ -368,12 +382,12 @@ class GamutView extends PerspectiveView {
     addPointerGamutVisual(settings) {
         this._pointerGamutVisual = new PointerGamutVisual(
             this._pointerGamutVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     colourspaceModel: this._colourspaceModel
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._pointerGamutVisual.add();
     }
@@ -381,16 +395,16 @@ class GamutView extends PerspectiveView {
     addSecondaryColourspaceVisual(settings) {
         this._secondaryColourspaceVisual = new ColourspaceVisual(
             this._secondaryColourspaceVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     name: 'secondary-colourspace-visual',
                     colourspace: this._secondaryColourspace,
                     colourspaceModel: this._colourspaceModel,
                     wireframe: true,
                     uniformOpacity: 0.25
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._secondaryColourspaceVisual.add();
     }
@@ -398,14 +412,14 @@ class GamutView extends PerspectiveView {
     addPrimaryColourspaceVisual(settings) {
         this._primaryColourspaceVisual = new ColourspaceVisual(
             this._primaryColourspaceVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     name: 'primary-colourspace-visual',
                     colourspace: this._primaryColourspace,
                     colourspaceModel: this._colourspaceModel
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._primaryColourspaceVisual.add();
     }
@@ -413,8 +427,8 @@ class GamutView extends PerspectiveView {
     addImageScatterVisual(settings) {
         this._imageScatterVisual = new ImageScatterVisual(
             this._imageScatterVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     image: this._image,
                     primaryColourspace: this._primaryColourspace,
                     secondaryColourspace: this._secondaryColourspace,
@@ -422,8 +436,8 @@ class GamutView extends PerspectiveView {
                     imageDecodingCctf: this._imageDecodingCctf,
                     colourspaceModel: this._colourspaceModel
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._imageScatterVisual.add();
     }
@@ -431,8 +445,8 @@ class GamutView extends PerspectiveView {
     addImageScatterOverlayVisual(settings) {
         this._imageScatterOverlayVisual = new ImageScatterVisual(
             this._imageScatterOverlayVisualGroup,
-            {
-                ...{
+            merge(
+                {
                     name: 'image-scatter-overlay-visual',
                     image: this._image,
                     primaryColourspace: this._primaryColourspace,
@@ -442,8 +456,8 @@ class GamutView extends PerspectiveView {
                     colourspaceModel: this._colourspaceModel,
                     uniformOpacity: 0.5
                 },
-                ...settings
-            }
+                settings || {}
+            )
         );
         this._imageScatterOverlayVisual.add();
     }
