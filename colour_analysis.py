@@ -254,7 +254,7 @@ def XYZ_to_colourspace_model_normalised(XYZ, illuminant, model, **kwargs):
 
     Other Parameters
     ----------------
-    \**kwargs : dict, optional
+    \\**kwargs : dict, optional
         Keywords arguments.
 
     Returns
@@ -381,7 +381,7 @@ BufferGeometryLoader>`_.
 
     Other Parameters
     ----------------
-    \**kwargs : dict, optional
+    \\**kwargs : dict, optional
         Valid attributes from `BufferGeometryLoader <https://threejs.org/docs/\
 #api/loaders/BufferGeometryLoader>`_.
 
