@@ -412,7 +412,7 @@ BufferGeometryLoader>`_.
     }
 
     for attribute, values in kwargs.items():
-        values = as_float_array(values)
+        values = np.asarray(values)
         shape = values.shape
         dtype = values.dtype.name
 
@@ -963,7 +963,7 @@ def pointer_gamut_visual(colourspace_model='CIE xyY'):
                 POINTER_GAMUT_ILLUMINANT, colourspace_model),
             colourspace_model)
 
-        vertices.append(np.array(zip(section, section[1:])))
+        vertices.append(list(zip(section, section[1:])))
 
     vertices = as_float_array(vertices)
 
@@ -991,6 +991,6 @@ def visible_spectrum_visual(colourspace_model='CIE xyY'):
             XYZ, ILLUMINANTS['CIE 1931 2 Degree Standard Observer']['E'],
             colourspace_model), colourspace_model)
 
-    vertices = np.array(zip(vertices, vertices[1:]))
+    vertices = as_float_array(list(zip(vertices, vertices[1:])))
 
     return buffer_geometry(position=vertices)
