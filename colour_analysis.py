@@ -24,8 +24,8 @@ from colour import (ILLUMINANTS, Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
 from colour.models import (XYZ_to_colourspace_model, function_gamma,
                            function_linear)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
-from colour.utilities import (CaseInsensitiveMapping, first_item,
-                              normalise_maximum, tsplit, tstack)
+from colour.utilities import (CaseInsensitiveMapping, as_float_array,
+                              first_item, normalise_maximum, tsplit, tstack)
 from colour.volume import XYZ_outer_surface
 
 __author__ = 'Colour Developers'
@@ -254,7 +254,7 @@ def XYZ_to_colourspace_model_normalised(XYZ, illuminant, model, **kwargs):
 
     Other Parameters
     ----------------
-    \**kwargs : dict, optional
+    \\**kwargs : dict, optional
         Keywords arguments.
 
     Returns
@@ -296,13 +296,13 @@ def colourspace_model_axis_reorder(a, model=None):
 
     i, j, k = tsplit(a)
     if model in ('CIE XYZ', ):
-        a = tstack((k, j, i))
+        a = tstack([k, j, i])
     elif model in ('CIE UCS', 'CIE UVW', 'CIE xyY'):
-        a = tstack((j, k, i))
+        a = tstack([j, k, i])
     elif model in ('CIE Lab', 'CIE LCHab', 'CIE Luv', 'CIE LCHuv', 'DIN 99',
                    'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
                    'hdr-CIELAB', 'hdr-IPT'):
-        a = tstack((k, i, j))
+        a = tstack([k, i, j])
 
     return a
 
@@ -381,7 +381,7 @@ BufferGeometryLoader>`_.
 
     Other Parameters
     ----------------
-    \**kwargs : dict, optional
+    \\**kwargs : dict, optional
         Valid attributes from `BufferGeometryLoader <https://threejs.org/docs/\
 #api/loaders/BufferGeometryLoader>`_.
 
@@ -412,7 +412,7 @@ BufferGeometryLoader>`_.
     }
 
     for attribute, values in kwargs.items():
-        values = np.asarray(values)
+        values = as_float_array(values)
         shape = values.shape
         dtype = values.dtype.name
 
@@ -524,9 +524,12 @@ def create_plane(width=1,
     positions = np.roll(positions, shift, -1)
     normals = np.roll(normals, shift, -1) * sign
     colors = np.ravel(positions)
-    colors = np.hstack((np.reshape(
-        np.interp(colors, (np.min(colors), np.max(colors)), (0, 1)),
-        positions.shape), np.ones((positions.shape[0], 1))))
+    colors = np.hstack([
+        np.reshape(
+            np.interp(colors, (np.min(colors), np.max(colors)), (0, 1)),
+            positions.shape),
+        np.ones((positions.shape[0], 1))
+    ])
     colors[..., neutral_axis] = 0
 
     vertices = np.zeros(positions.shape[0],
@@ -618,12 +621,12 @@ def create_box(width=1,
 
     offset = 0
     for vertices_p, faces_p, outline_p in planes_m:
-        positions = np.vstack((positions, vertices_p['position']))
-        uvs = np.vstack((uvs, vertices_p['uv']))
-        normals = np.vstack((normals, vertices_p['normal']))
+        positions = np.vstack([positions, vertices_p['position']])
+        uvs = np.vstack([uvs, vertices_p['uv']])
+        normals = np.vstack([normals, vertices_p['normal']])
 
-        faces = np.vstack((faces, faces_p + offset))
-        outline = np.vstack((outline, outline_p + offset))
+        faces = np.vstack([faces, faces_p + offset])
+        outline = np.vstack([outline, outline_p + offset])
         offset += vertices_p['position'].shape[0]
 
     vertices = np.zeros(positions.shape[0],
@@ -631,9 +634,12 @@ def create_box(width=1,
                          ('normal', np.float32, 3), ('colour', np.float32, 4)])
 
     colors = np.ravel(positions)
-    colors = np.hstack((np.reshape(
-        np.interp(colors, (np.min(colors), np.max(colors)), (0, 1)),
-        positions.shape), np.ones((positions.shape[0], 1))))
+    colors = np.hstack([
+        np.reshape(
+            np.interp(colors, (np.min(colors), np.max(colors)), (0, 1)),
+            positions.shape),
+        np.ones((positions.shape[0], 1))
+    ])
 
     vertices['position'] = positions
     vertices['uv'] = uvs
@@ -690,11 +696,9 @@ def image_data(path,
     """
 
     primary_colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(
-            re.escape(primary_colourspace))))
+        filter_RGB_colourspaces(re.escape(primary_colourspace)).values())
     secondary_colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(
-            re.escape(secondary_colourspace))))
+        filter_RGB_colourspaces(re.escape(secondary_colourspace)).values())
 
     colourspace = (primary_colourspace if image_colourspace == 'Primary' else
                    secondary_colourspace)
@@ -765,7 +769,7 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
     """
 
     colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
+        filter_RGB_colourspaces(re.escape(colourspace)).values())
 
     cube = create_box(
         width_segments=segments,
@@ -841,11 +845,9 @@ def RGB_image_scatter_visual(path,
     """
 
     primary_colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(
-            re.escape(primary_colourspace))))
+        filter_RGB_colourspaces(re.escape(primary_colourspace)).values())
     secondary_colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(
-            re.escape(secondary_colourspace))))
+        filter_RGB_colourspaces(re.escape(secondary_colourspace)).values())
 
     colourspace = (primary_colourspace if image_colourspace == 'Primary' else
                    secondary_colourspace)
@@ -917,12 +919,12 @@ def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
     """
 
     colourspace = first_item(
-        filter_RGB_colourspaces('^{0}$'.format(re.escape(colourspace))))
+        filter_RGB_colourspaces(re.escape(colourspace)).values())
 
-    cmfs = first_item(filter_cmfs(cmfs))
+    cmfs = first_item(filter_cmfs(cmfs).values())
     XYZ = cmfs.values
 
-    XYZ = np.vstack((XYZ, XYZ[0, ...]))
+    XYZ = np.vstack([XYZ, XYZ[0, ...]])
 
     vertices = colourspace_model_axis_reorder(
         XYZ_to_colourspace_model_normalised(
@@ -956,14 +958,14 @@ def pointer_gamut_visual(colourspace_model='CIE xyY'):
     for i in range(16):
         section = colourspace_model_axis_reorder(
             XYZ_to_colourspace_model_normalised(
-                np.vstack((pointer_gamut_data[i],
-                           pointer_gamut_data[i][0, ...])),
+                np.vstack(
+                    [pointer_gamut_data[i], pointer_gamut_data[i][0, ...]]),
                 POINTER_GAMUT_ILLUMINANT, colourspace_model),
             colourspace_model)
 
         vertices.append(np.array(zip(section, section[1:])))
 
-    vertices = np.asarray(vertices)
+    vertices = as_float_array(vertices)
 
     return buffer_geometry(position=vertices)
 
