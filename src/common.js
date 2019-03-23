@@ -1,5 +1,5 @@
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 function serverRoute(route) {

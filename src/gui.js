@@ -1,5 +1,5 @@
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 // https://stackoverflow.com/a/45699568/931625
