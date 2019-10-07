@@ -75,7 +75,7 @@ CACHE.init_app(APP)
 APP.config.update(
     COMPRESS_LEVEL=3,
     COMPRESS_CACHE_KEY=lambda x: x.full_path,
-    COMPRESS_CACHE_BACKEND=lambda: SimpleCache(default_timeout=
+    COMPRESS_CACHE_BACKEND=lambda: SimpleCache(default_timeout=  # noqa
                                                CACHE_DEFAULT_TIMEOUT),
 )
 

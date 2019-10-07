@@ -24,8 +24,8 @@ __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
 
 __all__ = [
-    'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'formatting', 'npm_build',
-    'docker_build', 'docker_remove', 'docker_run'
+    'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'quality', 'formatting',
+    'npm_build', 'docker_build', 'docker_remove', 'docker_run'
 ]
 
 APPLICATION_NAME = app.__application_name__
@@ -60,6 +60,29 @@ def clean(ctx, bytecode=False):
 
     for pattern in patterns:
         ctx.run("rm -rf {}".format(pattern))
+
+
+@task
+def quality(ctx, flake8=True):
+    """
+    Checks the codebase with *Flake8*.
+
+    Parameters
+    ----------
+    ctx : invoke.context.Context
+        Context.
+    flake8 : bool, optional
+        Whether to check the codebase with *Flake8*.
+
+    Returns
+    -------
+    bool
+        Task success.
+    """
+
+    if flake8:
+        message_box('Checking codebase with "Flake8"...')
+        ctx.run('flake8')
 
 
 @task
@@ -105,7 +128,8 @@ def npm_build(ctx):
     for package_file in ('package.json', 'package-lock.json'):
         version_found = False
         for line in fileinput.input(package_file, inplace=True):
-            if re.match('\s*"version": "[\w.]+",', line) and not version_found:
+            if re.match('\\s*"version": "[\\w.]+",',
+                        line) and not version_found:
                 line = '  "version": "{0}",\n'.format(app.__version__)
                 version_found = True
 
