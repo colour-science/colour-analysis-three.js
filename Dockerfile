@@ -2,7 +2,8 @@ FROM python:3.6
 
 WORKDIR /tmp
 COPY ./requirements.txt /tmp
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt \
+    && rm /tmp/requirements.txt
 
 ARG CACHE_DATE
 
