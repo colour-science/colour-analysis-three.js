@@ -1,8 +1,0 @@
-README.rst
-colour_analysis.py
-setup.py
-colour_analysis.egg-info/PKG-INFO
-colour_analysis.egg-info/SOURCES.txt
-colour_analysis.egg-info/dependency_links.txt
-colour_analysis.egg-info/requires.txt
-colour_analysis.egg-info/top_level.txt
