@@ -45,8 +45,8 @@ classifiers = [
 python = "^3.5"
 colour-science = "^0.3.14"
 flask = "*"
-"flask-caching" = "*"
-"flask-compress" = { git = "https://github.com/colour-science/flask-compress" }
+flask-caching = "*"
+flask-compress = { git = "https://github.com/colour-science/flask-compress" }
 gunicorn = "*"
 matplotlib = "*"
 networkx = "*"
