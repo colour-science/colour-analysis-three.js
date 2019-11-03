@@ -19,12 +19,12 @@ from colour_analysis import (
     COLOURSPACE_MODEL, IMAGE_COLOURSPACE, IMAGE_DECODING_CCTF,
     PRIMARY_COLOURSPACE, RGB_colourspaces, RGB_colourspace_volume_visual,
     RGB_image_scatter_visual, SECONDARY_COLOURSPACE, colourspace_models,
-    decoding_cctfs, image_data, pointer_gamut_visual, spectral_locus_visual,
+    cctf_decodings, image_data, pointer_gamut_visual, spectral_locus_visual,
     visible_spectrum_visual)
 
 __author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2018 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
+__copyright__ = 'Copyright (C) 2018-2019 - Colour Developers'
+__license__ = 'New BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __maintainer__ = 'Colour Developers'
 __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
@@ -33,7 +33,7 @@ __application_name__ = 'Colour - Analysis'
 
 __major_version__ = '0'
 __minor_version__ = '1'
-__change_version__ = '5'
+__change_version__ = '6'
 __version__ = '.'.join(
     (__major_version__,
      __minor_version__,
@@ -42,7 +42,7 @@ __version__ = '.'.join(
 
 __all__ = [
     'APP', 'CACHE', 'CACHE_DEFAULT_TIMEOUT', 'IMAGES_DIRECTORY',
-    'images_response', 'decoding_cctfs_response',
+    'images_response', 'cctf_decodings_response',
     'colourspace_models_response', 'RGB_colourspaces_response',
     'image_data_response', 'RGB_colourspace_volume_visual_response',
     'RGB_image_scatter_visual_response', 'spectral_locus_visual_response',
@@ -75,7 +75,7 @@ CACHE.init_app(APP)
 APP.config.update(
     COMPRESS_LEVEL=3,
     COMPRESS_CACHE_KEY=lambda x: x.full_path,
-    COMPRESS_CACHE_BACKEND=lambda: SimpleCache(default_timeout=
+    COMPRESS_CACHE_BACKEND=lambda: SimpleCache(default_timeout=  # noqa
                                                CACHE_DEFAULT_TIMEOUT),
 )
 
@@ -157,7 +157,7 @@ def images_response():
 
 @APP.route('/decoding-cctfs')
 @CACHE.cached(timeout=CACHE_DEFAULT_TIMEOUT, query_string=True)
-def decoding_cctfs_response():
+def cctf_decodings_response():
     """
     Returns the decoding colour component transfer functions response.
 
@@ -167,7 +167,7 @@ def decoding_cctfs_response():
         Decoding colour component transfer functions response.
     """
 
-    json_data = decoding_cctfs()
+    json_data = cctf_decodings()
 
     response = Response(json_data, status=200, mimetype='application/json')
     response.headers['X-Content-Length'] = len(json_data)

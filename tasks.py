@@ -17,15 +17,15 @@ from colour.utilities import message_box
 import app
 
 __author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2018 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
+__copyright__ = 'Copyright (C) 2018-2019 - Colour Developers'
+__license__ = 'New BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __maintainer__ = 'Colour Developers'
 __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
 
 __all__ = [
-    'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'formatting', 'npm_build',
-    'docker_build', 'docker_remove', 'docker_run'
+    'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'quality', 'formatting',
+    'npm_build', 'requirements', 'docker_build', 'docker_remove', 'docker_run'
 ]
 
 APPLICATION_NAME = app.__application_name__
@@ -63,7 +63,30 @@ def clean(ctx, bytecode=False):
 
 
 @task
-def formatting(ctx, yapf=False):
+def quality(ctx, flake8=True):
+    """
+    Checks the codebase with *Flake8*.
+
+    Parameters
+    ----------
+    ctx : invoke.context.Context
+        Context.
+    flake8 : bool, optional
+        Whether to check the codebase with *Flake8*.
+
+    Returns
+    -------
+    bool
+        Task success.
+    """
+
+    if flake8:
+        message_box('Checking codebase with "Flake8"...')
+        ctx.run('flake8')
+
+
+@task
+def formatting(ctx, yapf=True):
     """
     Formats the codebase with *Yapf*.
 
@@ -105,7 +128,8 @@ def npm_build(ctx):
     for package_file in ('package.json', 'package-lock.json'):
         version_found = False
         for line in fileinput.input(package_file, inplace=True):
-            if re.match('\s*"version": "[\w.]+",', line) and not version_found:
+            if re.match('\\s*"version": "[\\w.]+",',
+                        line) and not version_found:
                 line = '  "version": "{0}",\n'.format(app.__version__)
                 version_found = True
 
@@ -114,7 +138,29 @@ def npm_build(ctx):
     ctx.run('npm run build')
 
 
-@task(npm_build)
+@task
+def requirements(ctx):
+    """
+    Export the *requirements.txt* file.
+
+    Parameters
+    ----------
+    ctx : invoke.context.Context
+        Context.
+
+    Returns
+    -------
+    bool
+        Task success.
+    """
+
+    message_box('Exporting "requirements.txt" file...')
+    ctx.run('poetry run pip freeze | grep -v '
+            '"github.com/colour-science/colour-analysis-three.js" '
+            '> requirements.txt')
+
+
+@task(npm_build, requirements)
 def docker_build(ctx):
     """
     Builds the *docker* image.

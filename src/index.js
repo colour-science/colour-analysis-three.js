@@ -4,7 +4,7 @@ import { updateDropdown, dropdownOptions } from './gui.js';
 import { isLinearFileFormat, info, saveFile, serverRoute, warning } from './common.js';
 
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 export {

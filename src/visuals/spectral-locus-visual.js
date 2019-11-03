@@ -3,7 +3,7 @@ import { Visual } from './visual.js';
 import { serverRoute } from '../common.js';
 
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 class SpectralLocusVisual extends Visual {
