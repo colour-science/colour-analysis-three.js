@@ -1,0 +1,8 @@
+
+[development]
+coverage
+flake8
+invoke
+nose
+pytest
+yapf==0.23

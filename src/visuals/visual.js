@@ -1,7 +1,7 @@
 import { removeObjectByName, loadingCallback } from '../common.js';
 
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 class Visual {

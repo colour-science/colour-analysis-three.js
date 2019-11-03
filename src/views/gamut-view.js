@@ -8,7 +8,7 @@ import { SpectralLocusVisual } from '../visuals/spectral-locus-visual.js';
 import { VisibleSpectrumVisual } from '../visuals/visible-spectrum-visual.js';
 
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 class GamutView extends PerspectiveView {

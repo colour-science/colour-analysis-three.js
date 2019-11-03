@@ -2,7 +2,7 @@ import { View } from './view.js';
 import merge from 'deepmerge';
 
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 class PerspectiveView extends View {

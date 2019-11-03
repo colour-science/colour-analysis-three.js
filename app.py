@@ -23,8 +23,8 @@ from colour_analysis import (
     visible_spectrum_visual)
 
 __author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2018 - Colour Developers'
-__license__ = 'New BSD License - http://opensource.org/licenses/BSD-3-Clause'
+__copyright__ = 'Copyright (C) 2018-2019 - Colour Developers'
+__license__ = 'New BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __maintainer__ = 'Colour Developers'
 __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
@@ -33,7 +33,7 @@ __application_name__ = 'Colour - Analysis'
 
 __major_version__ = '0'
 __minor_version__ = '1'
-__change_version__ = '5'
+__change_version__ = '6'
 __version__ = '.'.join(
     (__major_version__,
      __minor_version__,
@@ -75,7 +75,7 @@ CACHE.init_app(APP)
 APP.config.update(
     COMPRESS_LEVEL=3,
     COMPRESS_CACHE_KEY=lambda x: x.full_path,
-    COMPRESS_CACHE_BACKEND=lambda: SimpleCache(default_timeout=
+    COMPRESS_CACHE_BACKEND=lambda: SimpleCache(default_timeout=  # noqa
                                                CACHE_DEFAULT_TIMEOUT),
 )
 

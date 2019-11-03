@@ -2,7 +2,7 @@ import merge from 'deepmerge';
 import { View } from './view.js';
 
 /**
- * @author Colour Developers / http://colour-science.org/
+ * @author Colour Developers / https://www.colour-science.org/
  */
 
 class OrthographicView extends View {
