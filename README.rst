@@ -37,13 +37,8 @@ Development
 
 .. code-block:: bash
 
-    $ conda create -y -n python-colour-analysis
-    $ source activate python-colour-analysis
-    $ conda install -y -c conda-forge colour-science
-    $ conda install flask invoke matplotlib
-    $ pip install git+git://github.com/colour-science/flask-compress@feature/cache
-    $ npm run build
-    $ python app.py
+    $ poetry install
+    $ poetry run invoke docker-run
 
 Code of Conduct
 ---------------

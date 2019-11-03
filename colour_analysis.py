@@ -13,16 +13,14 @@ import json
 import numpy as np
 import os
 import re
-from collections import OrderedDict
 from werkzeug.contrib.cache import SimpleCache
 
-from colour import (ILLUMINANTS, Lab_to_XYZ, LCHab_to_Lab, LOG_DECODING_CURVES,
+from colour import (ILLUMINANTS, CCTF_DECODINGS, Lab_to_XYZ, LCHab_to_Lab,
                     POINTER_GAMUT_DATA, POINTER_GAMUT_ILLUMINANT,
-                    OETFS_REVERSE, RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ,
-                    XYZ_to_RGB, XYZ_to_JzAzBz, XYZ_to_OSA_UCS,
+                    RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB,
+                    XYZ_to_JzAzBz, XYZ_to_OSA_UCS, convert,
                     is_within_pointer_gamut, read_image)
-from colour.models import (XYZ_to_colourspace_model, function_gamma,
-                           function_linear)
+from colour.models import linear_function
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
 from colour.utilities import (CaseInsensitiveMapping, as_float_array,
                               first_item, normalise_maximum, tsplit, tstack)
@@ -37,11 +35,11 @@ __status__ = 'Production'
 
 __all__ = [
     'LINEAR_FILE_FORMATS', 'DTYPE_MAPPING', 'POSITION_DTYPE', 'COLOUR_DTYPE',
-    'COLOURSPACE_MODELS', 'COLOURSPACE_MODELS_LABELS', 'DECODING_CCTFS',
-    'PRIMARY_COLOURSPACE', 'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE',
-    'IMAGE_DECODING_CCTF', 'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
-    'XYZ_to_colourspace_model_normalised', 'colourspace_model_axis_reorder',
-    'colourspace_model_faces_reorder', 'decoding_cctfs', 'colourspace_models',
+    'COLOURSPACE_MODELS', 'COLOURSPACE_MODELS_LABELS', 'PRIMARY_COLOURSPACE',
+    'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE', 'IMAGE_DECODING_CCTF',
+    'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
+    'XYZ_to_colourspace_model', 'colourspace_model_axis_reorder',
+    'colourspace_model_faces_reorder', 'cctf_decodings', 'colourspace_models',
     'RGB_colourspaces', 'buffer_geometry', 'create_plane', 'create_box',
     'image_data', 'RGB_colourspace_volume_visual', 'spectral_locus_visual',
     'RGB_image_scatter_visual', 'pointer_gamut_visual',
@@ -87,20 +85,29 @@ adapted to send data from the server to client.
 COLOUR_DTYPE : type
 """
 
-COLOURSPACE_MODELS = ('CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS',
-                      'CIE UVW', 'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT',
-                      'JzAzBz', 'OSA UCS', 'hdr-CIELAB', 'hdr-IPT')
+COLOURSPACE_MODELS = ('CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD',
+                      'CAM16SCD', 'CAM16UCS', 'CIE XYZ', 'CIE xyY', 'CIE Lab',
+                      'CIE Luv', 'CIE UCS', 'CIE UVW', 'DIN 99', 'Hunter Lab',
+                      'Hunter Rdab', 'ICTCP', 'IPT', 'JzAzBz', 'OSA UCS',
+                      'hdr-CIELAB', 'hdr-IPT')
 """
 Reference colourspace models defining available colour transformations from
 CIE XYZ tristimulus values.
 
 COLOURSPACE_MODELS : tuple
-    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
-    'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+    **{'CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD', 'CAM16SCD', 'CAM16UCS',
+    'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'DIN 99',
+    'Hunter Lab', 'Hunter Rdab', 'ICTCP', 'IPT', 'JzAzBz', 'OSA UCS',
     'hdr-CIELAB', 'hdr-IPT'}**
 """
 
 COLOURSPACE_MODELS_LABELS = {
+    'CAM02LCD': ('M', 'J', 'h'),
+    'CAM02SCD': ('M', 'J', 'h'),
+    'CAM02UCS': ('M', 'J', 'h'),
+    'CAM16LCD': ('M', 'J', 'h'),
+    'CAM16SCD': ('M', 'J', 'h'),
+    'CAM16UCS': ('M', 'J', 'h'),
     'CIE XYZ': ('X', 'Y', 'Z'),
     'CIE xyY': ('x', 'Y', 'y'),
     'CIE Lab': ('a*', 'L*', 'b*'),
@@ -110,6 +117,7 @@ COLOURSPACE_MODELS_LABELS = {
     'DIN 99': ('a99', 'L99', 'b99'),
     'Hunter Lab': ('a', 'L', 'b'),
     'Hunter Rdab': ('a', 'Rd', 'b'),
+    'ICTCP': ('CT', 'I', 'CP'),
     'IPT': ('P', 'I', 'T'),
     'JzAzBz': ('Az', 'Jz', 'Bz'),
     'OSA UCS': ('j', 'J', 'g'),
@@ -121,26 +129,15 @@ Reference colourspace models axes labels, ordered so that luminance is on *Y*
 axis.
 
 COLOURSPACE_MODELS : dict
-    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
-    'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+    **{'CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD', 'CAM16SCD', 'CAM16UCS',
+    'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'DIN 99',
+    'Hunter Lab', 'Hunter Rdab', 'ICTCP', 'IPT', 'JzAzBz', 'OSA UCS',
     'hdr-CIELAB', 'hdr-IPT'}**
 """
 
-DECODING_CCTFS = OrderedDict()
-DECODING_CCTFS.update(
-    sorted({
-        'Gamma 2.2': lambda x: function_gamma(x, 2.2),
-        'Gamma 2.4': lambda x: function_gamma(x, 2.4),
-        'Gamma 2.6': lambda x: function_gamma(x, 2.6),
-        'Linear': function_linear,
-    }.items()))
-DECODING_CCTFS.update(sorted(OETFS_REVERSE.items()))
-DECODING_CCTFS.update(sorted(LOG_DECODING_CURVES.items()))
-"""
-Decoding colour component transfer functions.
-
-DECODING_CCTFS : OrderedDict
-"""
+CCTF_DECODINGS.update({
+    'Linear': linear_function,
+})
 
 PRIMARY_COLOURSPACE = 'sRGB'
 """
@@ -175,8 +172,9 @@ COLOURSPACE_MODEL = 'CIE xyY'
 Analysis colour model.
 
 COLOURSPACE_MODEL : unicode
-    **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
-    'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
+    **{'CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD', 'CAM16SCD', 'CAM16UCS',
+    'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW', 'DIN 99',
+    'Hunter Lab', 'Hunter Rdab', 'ICTCP', 'IPT', 'JzAzBz', 'OSA UCS',
     'hdr-CIELAB', 'hdr-IPT'}**
 """
 
@@ -226,14 +224,14 @@ def load_image(path, decoding_cctf='sRGB'):
         RGB = read_image(path)
 
         if not is_linear_image:
-            RGB = DECODING_CCTFS[decoding_cctf](RGB)
+            RGB = CCTF_DECODINGS[decoding_cctf](RGB)
 
         IMAGE_CACHE.set(key, RGB)
 
     return RGB
 
 
-def XYZ_to_colourspace_model_normalised(XYZ, illuminant, model, **kwargs):
+def XYZ_to_colourspace_model(XYZ, illuminant, model, **kwargs):
     """
     Converts from *CIE XYZ* tristimulus values to given colourspace model while
     normalising for visual convenience some of the models.
@@ -246,10 +244,10 @@ def XYZ_to_colourspace_model_normalised(XYZ, illuminant, model, **kwargs):
         *CIE XYZ* tristimulus values *illuminant* *xy* chromaticity
         coordinates.
     model : unicode
-        **{'CIE XYZ', 'CIE xyY', 'CIE xy', 'CIE Lab', 'CIE LCHab', 'CIE Luv',
-        'CIE Luv uv', 'CIE LCHuv', 'CIE UCS', 'CIE UCS uv', 'CIE UVW',
-        'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz, 'OSA UCS',
-        'hdr-CIELAB', 'hdr-IPT'}**,
+        **{'CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD', 'CAM16SCD',
+        'CAM16UCS', 'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS',
+        'CIE UVW', 'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'ICTCP', 'IPT',
+        'JzAzBz', 'OSA UCS', 'hdr-CIELAB', 'hdr-IPT'}**,
         Colourspace model to convert the *CIE XYZ* tristimulus values to.
 
     Other Parameters
@@ -263,11 +261,17 @@ def XYZ_to_colourspace_model_normalised(XYZ, illuminant, model, **kwargs):
         Colourspace model values.
     """
 
-    ijk = XYZ_to_colourspace_model(XYZ, illuminant, model, **kwargs)
+    ijk = convert(
+        XYZ,
+        'CIE XYZ',
+        model,
+        illuminant=illuminant,
+        verbose={'mode': 'Short'},
+        **kwargs)
 
     if model == 'JzAzBz':
         ijk /= XYZ_to_JzAzBz([1, 1, 1])[0]
-    if model == 'OSA UCS':
+    elif model == 'OSA UCS':
         ijk /= XYZ_to_OSA_UCS([1, 1, 1])[0]
 
     return ijk
@@ -283,9 +287,10 @@ def colourspace_model_axis_reorder(a, model=None):
     a : array_like
         Colourspace model :math:`a` array.
     model : unicode, optional
-        **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
-        'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
-        'hdr-CIELAB', 'hdr-IPT'}**
+        **{'CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD', 'CAM16SCD',
+        'CAM16UCS', 'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS',
+        'CIE UVW', 'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'ICTCP', 'IPT',
+        'JzAzBz', 'OSA UCS', 'hdr-CIELAB', 'hdr-IPT'}**,
         Colourspace model.
 
     Returns
@@ -299,9 +304,10 @@ def colourspace_model_axis_reorder(a, model=None):
         a = tstack([k, j, i])
     elif model in ('CIE UCS', 'CIE UVW', 'CIE xyY'):
         a = tstack([j, k, i])
-    elif model in ('CIE Lab', 'CIE LCHab', 'CIE Luv', 'CIE LCHuv', 'DIN 99',
-                   'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
-                   'hdr-CIELAB', 'hdr-IPT'):
+    elif model in ('CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD', 'CAM16SCD',
+                   'CAM16UCS', 'CIE Lab', 'CIE LCHab', 'CIE Luv', 'CIE LCHuv',
+                   'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'ICTCP', 'IPT',
+                   'JzAzBz', 'OSA UCS', 'hdr-CIELAB', 'hdr-IPT'):
         a = tstack([k, i, j])
 
     return a
@@ -316,9 +322,10 @@ def colourspace_model_faces_reorder(a, model=None):
     a : array_like
         Colourspace model :math:`a` array.
     model : unicode, optional
-        **{'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS', 'CIE UVW',
-        'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'IPT', 'JzAzBz', 'OSA UCS',
-        'hdr-CIELAB', 'hdr-IPT'}**
+        **{'CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD', 'CAM16SCD',
+        'CAM16UCS', 'CIE XYZ', 'CIE xyY', 'CIE Lab', 'CIE Luv', 'CIE UCS',
+        'CIE UVW', 'DIN 99', 'Hunter Lab', 'Hunter Rdab', 'ICTCP', 'IPT',
+        'JzAzBz', 'OSA UCS', 'hdr-CIELAB', 'hdr-IPT'}**,
         Colourspace model.
 
     Returns
@@ -333,7 +340,7 @@ def colourspace_model_faces_reorder(a, model=None):
     return a
 
 
-def decoding_cctfs():
+def cctf_decodings():
     """
     Returns the decoding colour component transfer functions formatted as
     *JSON*.
@@ -344,7 +351,7 @@ def decoding_cctfs():
         Decoding colour component transfer functions formatted as *JSON*.
     """
 
-    return json.dumps(DECODING_CCTFS.keys())
+    return json.dumps(list(CCTF_DECODINGS.keys()))
 
 
 def colourspace_models():
@@ -370,7 +377,7 @@ def RGB_colourspaces():
         RGB colourspaces formatted as *JSON*.
     """
 
-    return json.dumps(RGB_COLOURSPACES.keys())
+    return json.dumps(list(RGB_COLOURSPACES.keys()))
 
 
 def buffer_geometry(**kwargs):
@@ -784,8 +791,8 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
     XYZ = RGB_to_XYZ(vertices, colourspace.whitepoint, colourspace.whitepoint,
                      colourspace.RGB_to_XYZ_matrix)
     vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model_normalised(
-            XYZ, colourspace.whitepoint, colourspace_model), colourspace_model)
+        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
+                                 colourspace_model), colourspace_model)
 
     return buffer_geometry(position=vertices, color=RGB, index=faces)
 
@@ -886,8 +893,8 @@ def RGB_image_scatter_visual(path,
                      colourspace.RGB_to_XYZ_matrix)
 
     vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model_normalised(
-            XYZ, colourspace.whitepoint, colourspace_model), colourspace_model)
+        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
+                                 colourspace_model), colourspace_model)
 
     if (out_of_primary_colourspace_gamut or
             out_of_secondary_colourspace_gamut or out_of_pointer_gamut):
@@ -927,8 +934,8 @@ def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
     XYZ = np.vstack([XYZ, XYZ[0, ...]])
 
     vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model_normalised(
-            XYZ, colourspace.whitepoint, colourspace_model), colourspace_model)
+        XYZ_to_colourspace_model(XYZ, colourspace.whitepoint,
+                                 colourspace_model), colourspace_model)
 
     RGB = normalise_maximum(
         XYZ_to_RGB(XYZ, colourspace.whitepoint, colourspace.whitepoint,
@@ -957,7 +964,7 @@ def pointer_gamut_visual(colourspace_model='CIE xyY'):
     vertices = []
     for i in range(16):
         section = colourspace_model_axis_reorder(
-            XYZ_to_colourspace_model_normalised(
+            XYZ_to_colourspace_model(
                 np.vstack(
                     [pointer_gamut_data[i], pointer_gamut_data[i][0, ...]]),
                 POINTER_GAMUT_ILLUMINANT, colourspace_model),
@@ -987,7 +994,7 @@ def visible_spectrum_visual(colourspace_model='CIE xyY'):
 
     XYZ = XYZ_outer_surface()
     vertices = colourspace_model_axis_reorder(
-        XYZ_to_colourspace_model_normalised(
+        XYZ_to_colourspace_model(
             XYZ, ILLUMINANTS['CIE 1931 2 Degree Standard Observer']['E'],
             colourspace_model), colourspace_model)
 

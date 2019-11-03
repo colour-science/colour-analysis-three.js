@@ -4,5 +4,6 @@
 .idea
 .vscode
 __pycache__
+colour_analysis.egg-info
 node_modules
 poetry.lock

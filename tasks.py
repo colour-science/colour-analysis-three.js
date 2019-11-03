@@ -25,7 +25,7 @@ __status__ = 'Production'
 
 __all__ = [
     'APPLICATION_NAME', 'ORG', 'CONTAINER', 'clean', 'quality', 'formatting',
-    'npm_build', 'docker_build', 'docker_remove', 'docker_run'
+    'npm_build', 'requirements', 'docker_build', 'docker_remove', 'docker_run'
 ]
 
 APPLICATION_NAME = app.__application_name__
@@ -86,7 +86,7 @@ def quality(ctx, flake8=True):
 
 
 @task
-def formatting(ctx, yapf=False):
+def formatting(ctx, yapf=True):
     """
     Formats the codebase with *Yapf*.
 
@@ -138,7 +138,29 @@ def npm_build(ctx):
     ctx.run('npm run build')
 
 
-@task(npm_build)
+@task
+def requirements(ctx):
+    """
+    Export the *requirements.txt* file.
+
+    Parameters
+    ----------
+    ctx : invoke.context.Context
+        Context.
+
+    Returns
+    -------
+    bool
+        Task success.
+    """
+
+    message_box('Exporting "requirements.txt" file...')
+    ctx.run('poetry run pip freeze | grep -v '
+            '"github.com/colour-science/colour-analysis-three.js" '
+            '> requirements.txt')
+
+
+@task(npm_build, requirements)
 def docker_build(ctx):
     """
     Builds the *docker* image.

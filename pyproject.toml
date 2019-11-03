@@ -43,6 +43,13 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.5"
+colour-science = "^0.3.14"
+flask = "*"
+"flask-caching" = "*"
+"flask-compress" = { git = "https://github.com/colour-science/flask-compress" }
+gunicorn = "*"
+matplotlib = "*"
+networkx = "*"
 
 coverage = { version = "*", optional = true }  # Development dependency.
 flake8 = { version = "*", optional = true }  # Development dependency.
