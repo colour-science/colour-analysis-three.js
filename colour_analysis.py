@@ -27,7 +27,7 @@ from colour.utilities import (CaseInsensitiveMapping, as_float_array,
 from colour.volume import XYZ_outer_surface
 
 __author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2018-2019 - Colour Developers'
+__copyright__ = 'Copyright (C) 2018-2020 - Colour Developers'
 __license__ = 'New BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __maintainer__ = 'Colour Developers'
 __email__ = 'colour-developers@colour-science.org'
