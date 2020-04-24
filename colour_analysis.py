@@ -384,13 +384,13 @@ def buffer_geometry(**kwargs):
     """
     Returns given geometry formatted as *JSON* compatible with *Three.js*
     `BufferGeometryLoader <https://threejs.org/docs/#api/loaders/\
-BufferGeometryLoader>`_.
+BufferGeometryLoader>`__.
 
     Other Parameters
     ----------------
     \\**kwargs : dict, optional
         Valid attributes from `BufferGeometryLoader <https://threejs.org/docs/\
-#api/loaders/BufferGeometryLoader>`_.
+#api/loaders/BufferGeometryLoader>`__.
 
     Returns
     -------
