@@ -4,8 +4,6 @@ Invoke - Tasks
 ==============
 """
 
-from __future__ import print_function, unicode_literals
-
 import fileinput
 import re
 import sys
@@ -17,10 +15,10 @@ from colour.utilities import message_box
 import app
 
 __author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2018-2019 - Colour Developers'
+__copyright__ = 'Copyright (C) 2018-2020 - Colour Developers'
 __license__ = 'New BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
+__email__ = 'colour-developers@colour-science.org'
 __status__ = 'Production'
 
 __all__ = [
@@ -141,7 +139,7 @@ def npm_build(ctx):
 @task
 def requirements(ctx):
     """
-    Export the *requirements.txt* file.
+    Exports the *requirements.txt* file.
 
     Parameters
     ----------
@@ -155,8 +153,9 @@ def requirements(ctx):
     """
 
     message_box('Exporting "requirements.txt" file...')
-    ctx.run('poetry run pip freeze | grep -v '
-            '"github.com/colour-science/colour-analysis-three.js" '
+    ctx.run('poetry run pip freeze | '
+            'egrep -v '
+            '"github.com/colour-science/colour-analysis-three.js|enum34" '
             '> requirements.txt')
 
 

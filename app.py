@@ -8,10 +8,10 @@ from __future__ import division, unicode_literals
 
 import json
 import os
+from cachelib import SimpleCache
 from flask import Flask, Response, render_template, request
 from flask_caching import Cache
 from flask_compress import Compress
-from werkzeug.contrib.cache import SimpleCache
 
 from colour.utilities import domain_range_scale
 
@@ -23,17 +23,17 @@ from colour_analysis import (
     visible_spectrum_visual)
 
 __author__ = 'Colour Developers'
-__copyright__ = 'Copyright (C) 2018-2019 - Colour Developers'
+__copyright__ = 'Copyright (C) 2018-2020 - Colour Developers'
 __license__ = 'New BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __maintainer__ = 'Colour Developers'
-__email__ = 'colour-science@googlegroups.com'
+__email__ = 'colour-developers@colour-science.org'
 __status__ = 'Production'
 
 __application_name__ = 'Colour - Analysis'
 
 __major_version__ = '0'
 __minor_version__ = '1'
-__change_version__ = '6'
+__change_version__ = '7'
 __version__ = '.'.join(
     (__major_version__,
      __minor_version__,
