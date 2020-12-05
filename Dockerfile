@@ -1,9 +1,10 @@
-FROM python:3.6
+FROM python:3.8
 
 WORKDIR /tmp
 COPY ./requirements.txt /tmp
 RUN pip install -r requirements.txt \
-    && rm /tmp/requirements.txt
+    && rm /tmp/requirements.txt \
+    && python -c "import imageio;imageio.plugins.freeimage.download()"
 
 ARG CACHE_DATE
 

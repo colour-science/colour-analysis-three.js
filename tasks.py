@@ -4,8 +4,6 @@ Invoke - Tasks
 ==============
 """
 
-from __future__ import print_function, unicode_literals
-
 import fileinput
 import re
 import sys

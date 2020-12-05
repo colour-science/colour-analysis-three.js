@@ -8,10 +8,10 @@ from __future__ import division, unicode_literals
 
 import json
 import os
+from cachelib import SimpleCache
 from flask import Flask, Response, render_template, request
 from flask_caching import Cache
 from flask_compress import Compress
-from werkzeug.contrib.cache import SimpleCache
 
 from colour.utilities import domain_range_scale
 
