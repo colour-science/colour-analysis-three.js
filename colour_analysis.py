@@ -17,11 +17,12 @@ from colour import (CCS_ILLUMINANTS, CCTF_DECODINGS, Lab_to_XYZ, LCHab_to_Lab,
                     RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB,
                     XYZ_to_JzAzBz, XYZ_to_OSA_UCS, convert,
                     is_within_pointer_gamut, read_image)
+from colour.geometry import primitive_cube
 from colour.models import (CCS_ILLUMINANT_POINTER_GAMUT,
                            DATA_POINTER_GAMUT_VOLUME, linear_function)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
-from colour.utilities import (CaseInsensitiveMapping, as_float_array,
-                              first_item, normalise_maximum, tsplit, tstack)
+from colour.utilities import (as_float_array, first_item, normalise_maximum,
+                              tsplit, tstack)
 from colour.volume import XYZ_outer_surface
 
 __author__ = 'Colour Developers'
@@ -32,13 +33,13 @@ __email__ = 'colour-developers@colour-science.org'
 __status__ = 'Production'
 
 __all__ = [
-    'LINEAR_FILE_FORMATS', 'DTYPE_MAPPING', 'POSITION_DTYPE', 'COLOUR_DTYPE',
-    'COLOURSPACE_MODELS', 'COLOURSPACE_MODELS_LABELS', 'PRIMARY_COLOURSPACE',
-    'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE', 'IMAGE_DECODING_CCTF',
+    'LINEAR_FILE_FORMATS', 'DTYPE_POSITION', 'DTYPE_COLOUR',
+    'COLOURSPACE_MODELS', 'COLOURSPACE_MODEL_LABELS', 'PRIMARY_COLOURSPACE',
+    'SECONDARY_COLOURSPACE', 'IMAGE_COLOURSPACE', 'IMAGE_CCTF_DECODING',
     'COLOURSPACE_MODEL', 'IMAGE_CACHE', 'load_image',
     'XYZ_to_colourspace_model', 'colourspace_model_axis_reorder',
     'colourspace_model_faces_reorder', 'cctf_decodings', 'colourspace_models',
-    'RGB_colourspaces', 'buffer_geometry', 'create_plane', 'create_box',
+    'RGB_colourspaces', 'buffer_geometry', 'conform_primitive_dtype',
     'image_data', 'RGB_colourspace_volume_visual', 'spectral_locus_visual',
     'RGB_image_scatter_visual', 'pointer_gamut_visual',
     'visible_spectrum_visual'
@@ -51,36 +52,25 @@ Assumed linear image formats.
 LINEAR_IMAGE_FORMATS : tuple
 """
 
-DTYPE_MAPPING = CaseInsensitiveMapping({
-    'Float16': np.float16,
-    'Float32': np.float32,
-    'Float64': np.float64,
-})
+DTYPE_POSITION = np.sctypeDict.get(
+    os.environ.get('COLOUR_SCIENCE__COLOUR_ANALYSIS_DTYPE_POSITION',
+                   'float32'))
 """
-Dtype mapping.
+Default floating point number dtype for visual data except colour. "float32" is
+usually chosen over "float16" or "float64" as a good compromise between
+precision and data size.
 
-DTYPE_MAPPING : CaseInsensitiveMapping
-    **{'Float16', 'Float32', 'Float64'}**
-"""
-
-POSITION_DTYPE = DTYPE_MAPPING.get(
-    os.environ.get('COLOUR_ANALYSIS_POSITION_DTYPE', 'Float32'))
-"""
-Default floating point number dtype for visual data except colour. Float32 is
-usually chosen over Float16 or Float64 as a good compromise between precision
-and data size.
-
-POSITION_DTYPE : type
+DTYPE_POSITION : type
 """
 
-COLOUR_DTYPE = DTYPE_MAPPING.get(
-    os.environ.get('COLOUR_ANALYSIS_COLOUR_DTYPE', 'Float16'))
+DTYPE_COLOUR = np.sctypeDict.get(
+    os.environ.get('COLOUR_SCIENCE__COLOUR_ANALYSIS_DTYPE_COLOUR', 'float16'))
 """
-Default floating point number dtype for visual colour and image data. Float16
-is usually chosen over Float32 and Float64 because it is lighter and thus more
-adapted to send data from the server to client.
+Default floating point number dtype for visual colour and image data. "float16"
+is usually chosen over "float32" and "float64" because it is lighter and thus
+more adapted to send data from the server to client.
 
-COLOUR_DTYPE : type
+DTYPE_COLOUR : type
 """
 
 COLOURSPACE_MODELS = ('CAM02LCD', 'CAM02SCD', 'CAM02UCS', 'CAM16LCD',
@@ -99,7 +89,7 @@ COLOURSPACE_MODELS : tuple
     'hdr-CIELAB', 'hdr-IPT'}**
 """
 
-COLOURSPACE_MODELS_LABELS = {
+COLOURSPACE_MODEL_LABELS = {
     'CAM02LCD': ('M', 'J', 'h'),
     'CAM02SCD': ('M', 'J', 'h'),
     'CAM02UCS': ('M', 'J', 'h'),
@@ -159,11 +149,11 @@ Analysed image RGB colourspace either *Primary* or *Secondary*.
 IMAGE_COLOURSPACE : unicode
 """
 
-IMAGE_DECODING_CCTF = 'sRGB'
+IMAGE_CCTF_DECODING = 'sRGB'
 """
 Analysed image RGB colourspace decoding colour component transfer function.
 
-IMAGE_DECODING_CCTF : unicode
+IMAGE_CCTF_DECODING : unicode
 """
 
 COLOURSPACE_MODEL = 'CIE xyY'
@@ -363,7 +353,7 @@ def colourspace_models():
         Colourspace models formatted as *JSON*.
     """
 
-    return json.dumps(COLOURSPACE_MODELS_LABELS)
+    return json.dumps(COLOURSPACE_MODEL_LABELS)
 
 
 def RGB_colourspaces():
@@ -425,7 +415,7 @@ BufferGeometryLoader>`__.
         values = np.ravel(values)
 
         if 'float' in dtype:
-            dtype = (COLOUR_DTYPE if attribute == 'color' else POSITION_DTYPE)
+            dtype = (DTYPE_COLOUR if attribute == 'color' else DTYPE_POSITION)
             values = np.around(values, np.finfo(dtype).precision)
             values = np.nan_to_num(values)
             dtype = np.dtype(dtype).name
@@ -439,228 +429,37 @@ BufferGeometryLoader>`__.
     return json.dumps(data)
 
 
-def create_plane(width=1,
-                 height=1,
-                 width_segments=1,
-                 height_segments=1,
-                 direction='+z'):
+def conform_primitive_dtype(primitive):
     """
-    Generates vertices and indices for a filled and outlined plane.
+    Conform the given primitive to the required dtype.
 
     Parameters
     ----------
-    width : float, optional
-        Plane width.
-    height : float, optional
-        Plane height.
-    width_segments : int, optional
-        Plane segments count along the width.
-    height_segments : float, optional
-        Plane segments count along the height.
-    direction: unicode, optional
-        ``{'-x', '+x', '-y', '+y', '-z', '+z'}``
-        Direction the plane will be facing.
+    primitive : array_like
+        Primitive to conform to the required dtype.
 
     Returns
     -------
-    vertices : array
-        Array of vertices suitable for use as a VertexBuffer.
-    faces : array
-        Indices to use to produce a filled plane.
-    outline : array
-        Indices to use to produce an outline of the plane.
-
-    References
-    ----------
-    .. [1] Cabello, R. (n.d.). PlaneBufferGeometry.js. Retrieved May 12, 2015,
-        from http://git.io/vU1Fh
+    tuple
+        Conformed primitive.
     """
 
-    x_grid = width_segments
-    y_grid = height_segments
+    vertices, faces, outline = primitive
 
-    x_grid1 = x_grid + 1
-    y_grid1 = y_grid + 1
-
-    # Positions, normals and uvs.
-    positions = np.zeros(x_grid1 * y_grid1 * 3)
-    normals = np.zeros(x_grid1 * y_grid1 * 3)
-    uvs = np.zeros(x_grid1 * y_grid1 * 2)
-
-    y = np.arange(y_grid1) * height / y_grid - height / 2
-    x = np.arange(x_grid1) * width / x_grid - width / 2
-
-    positions[::3] = np.tile(x, y_grid1)
-    positions[1::3] = -np.repeat(y, x_grid1)
-
-    normals[2::3] = 1
-
-    uvs[::2] = np.tile(np.arange(x_grid1) / x_grid, y_grid1)
-    uvs[1::2] = np.repeat(1 - np.arange(y_grid1) / y_grid, x_grid1)
-
-    # Faces and outline.
-    faces, outline = [], []
-    for i_y in range(y_grid):
-        for i_x in range(x_grid):
-            a = i_x + x_grid1 * i_y
-            b = i_x + x_grid1 * (i_y + 1)
-            c = (i_x + 1) + x_grid1 * (i_y + 1)
-            d = (i_x + 1) + x_grid1 * i_y
-
-            faces.extend(((a, b, d), (b, c, d)))
-            outline.extend(((a, b), (b, c), (c, d), (d, a)))
-
-    positions = np.reshape(positions, (-1, 3))
-    uvs = np.reshape(uvs, (-1, 2))
-    normals = np.reshape(normals, (-1, 3))
-
-    faces = np.reshape(faces, (-1, 3)).astype(np.uint32)
-    outline = np.reshape(outline, (-1, 2)).astype(np.uint32)
-
-    direction = direction.lower()
-    if direction in ('-x', '+x'):
-        shift, neutral_axis = 1, 0
-    elif direction in ('-y', '+y'):
-        shift, neutral_axis = -1, 1
-    elif direction in ('-z', '+z'):
-        shift, neutral_axis = 0, 2
-
-    sign = -1 if '-' in direction else 1
-
-    positions = np.roll(positions, shift, -1)
-    normals = np.roll(normals, shift, -1) * sign
-    colors = np.ravel(positions)
-    colors = np.hstack([
-        np.reshape(
-            np.interp(colors, (np.min(colors), np.max(colors)), (0, 1)),
-            positions.shape),
-        np.ones((positions.shape[0], 1))
-    ])
-    colors[..., neutral_axis] = 0
-
-    vertices = np.zeros(positions.shape[0],
-                        [('position', np.float32, 3), ('uv', np.float32, 2),
-                         ('normal', np.float32, 3), ('colour', np.float32, 4)])
-
-    vertices['position'] = positions
-    vertices['uv'] = uvs
-    vertices['normal'] = normals
-    vertices['colour'] = colors
-
-    return vertices, faces, outline
-
-
-def create_box(width=1,
-               height=1,
-               depth=1,
-               width_segments=1,
-               height_segments=1,
-               depth_segments=1,
-               planes=None):
-    """
-    Generates vertices and indices for a filled and outlined box.
-
-    Parameters
-    ----------
-    width : float, optional
-        Box width.
-    height : float, optional
-        Box height.
-    depth : float, optional
-        Box depth.
-    width_segments : int, optional
-        Box segments count along the width.
-    height_segments : float, optional
-        Box segments count along the height.
-    depth_segments : float, optional
-        Box segments count along the depth.
-    planes: array_like, optional
-        Any combination of ``{'-x', '+x', '-y', '+y', '-z', '+z'}``
-        Included planes in the box construction.
-
-    Returns
-    -------
-    vertices : array
-        Array of vertices suitable for use as a VertexBuffer.
-    faces : array
-        Indices to use to produce a filled box.
-    outline : array
-        Indices to use to produce an outline of the box.
-    """
-
-    planes = (('+x', '-x', '+y', '-y', '+z', '-z')
-              if planes is None else [d.lower() for d in planes])
-
-    w_s, h_s, d_s = width_segments, height_segments, depth_segments
-
-    planes_m = []
-    if '-z' in planes:
-        planes_m.append(list(create_plane(width, depth, w_s, d_s, '-z')))
-        planes_m[-1][0]['position'][..., 2] -= height / 2
-        planes_m[-1][1] = np.fliplr(planes_m[-1][1])
-    if '+z' in planes:
-        planes_m.append(list(create_plane(width, depth, w_s, d_s, '+z')))
-        planes_m[-1][0]['position'][..., 2] += height / 2
-
-    if '-y' in planes:
-        planes_m.append(list(create_plane(height, width, h_s, w_s, '-y')))
-        planes_m[-1][0]['position'][..., 1] -= depth / 2
-        planes_m[-1][1] = np.fliplr(planes_m[-1][1])
-    if '+y' in planes:
-        planes_m.append(list(create_plane(height, width, h_s, w_s, '+y')))
-        planes_m[-1][0]['position'][..., 1] += depth / 2
-
-    if '-x' in planes:
-        planes_m.append(list(create_plane(depth, height, d_s, h_s, '-x')))
-        planes_m[-1][0]['position'][..., 0] -= width / 2
-        planes_m[-1][1] = np.fliplr(planes_m[-1][1])
-    if '+x' in planes:
-        planes_m.append(list(create_plane(depth, height, d_s, h_s, '+x')))
-        planes_m[-1][0]['position'][..., 0] += width / 2
-
-    positions = np.zeros((0, 3), dtype=np.float32)
-    uvs = np.zeros((0, 2), dtype=np.float32)
-    normals = np.zeros((0, 3), dtype=np.float32)
-
-    faces = np.zeros((0, 3), dtype=np.uint32)
-    outline = np.zeros((0, 2), dtype=np.uint32)
-
-    offset = 0
-    for vertices_p, faces_p, outline_p in planes_m:
-        positions = np.vstack([positions, vertices_p['position']])
-        uvs = np.vstack([uvs, vertices_p['uv']])
-        normals = np.vstack([normals, vertices_p['normal']])
-
-        faces = np.vstack([faces, faces_p + offset])
-        outline = np.vstack([outline, outline_p + offset])
-        offset += vertices_p['position'].shape[0]
-
-    vertices = np.zeros(positions.shape[0],
-                        [('position', np.float32, 3), ('uv', np.float32, 2),
-                         ('normal', np.float32, 3), ('colour', np.float32, 4)])
-
-    colors = np.ravel(positions)
-    colors = np.hstack([
-        np.reshape(
-            np.interp(colors, (np.min(colors), np.max(colors)), (0, 1)),
-            positions.shape,
-        ),
-        np.ones((positions.shape[0], 1))
-    ])
-
-    vertices['position'] = positions
-    vertices['uv'] = uvs
-    vertices['normal'] = normals
-    vertices['colour'] = colors
-
-    return vertices, faces, outline
+    return (
+        vertices.astype(
+            [('position', np.float32, (3, )), ('uv', np.float32, (2, )),
+             ('normal', np.float32, (3, )), ('colour', np.float32, (4, ))]),
+        faces.astype(np.uint32),
+        outline.astype(np.uint32),
+    )
 
 
 def image_data(path,
                primary_colourspace=PRIMARY_COLOURSPACE,
                secondary_colourspace=SECONDARY_COLOURSPACE,
                image_colourspace=IMAGE_COLOURSPACE,
-               image_decoding_cctf=IMAGE_DECODING_CCTF,
+               image_decoding_cctf=IMAGE_CCTF_DECODING,
                out_of_primary_colourspace_gamut=False,
                out_of_secondary_colourspace_gamut=False,
                out_of_pointer_gamut=False,
@@ -745,7 +544,7 @@ def image_data(path,
 
     shape = RGB.shape
     RGB = np.ravel(RGB[..., 0:3].reshape(-1, 3))
-    RGB = np.around(RGB, np.finfo(COLOUR_DTYPE).precision)
+    RGB = np.around(RGB, np.finfo(DTYPE_COLOUR).precision)
 
     return json.dumps({
         'width': shape[1],
@@ -782,10 +581,11 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
     colourspace = first_item(
         filter_RGB_colourspaces(re.escape(colourspace)).values())
 
-    cube = create_box(
-        width_segments=segments,
-        height_segments=segments,
-        depth_segments=segments)
+    cube = conform_primitive_dtype(
+        primitive_cube(
+            width_segments=segments,
+            height_segments=segments,
+            depth_segments=segments))
 
     vertices = cube[0]['position'] + 0.5
     faces = colourspace_model_faces_reorder(
@@ -812,7 +612,7 @@ def RGB_image_scatter_visual(path,
                              primary_colourspace=PRIMARY_COLOURSPACE,
                              secondary_colourspace=SECONDARY_COLOURSPACE,
                              image_colourspace=IMAGE_COLOURSPACE,
-                             image_decoding_cctf=IMAGE_DECODING_CCTF,
+                             image_decoding_cctf=IMAGE_CCTF_DECODING,
                              colourspace_model=COLOURSPACE_MODEL,
                              out_of_primary_colourspace_gamut=False,
                              out_of_secondary_colourspace_gamut=False,
