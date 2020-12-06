@@ -16,7 +16,7 @@ from flask_compress import Compress
 from colour.utilities import domain_range_scale
 
 from colour_analysis import (
-    COLOURSPACE_MODEL, IMAGE_COLOURSPACE, IMAGE_DECODING_CCTF,
+    COLOURSPACE_MODEL, IMAGE_COLOURSPACE, IMAGE_CCTF_DECODING,
     PRIMARY_COLOURSPACE, RGB_colourspaces, RGB_colourspace_volume_visual,
     RGB_image_scatter_visual, SECONDARY_COLOURSPACE, colourspace_models,
     cctf_decodings, image_data, pointer_gamut_visual, spectral_locus_visual,
@@ -237,7 +237,7 @@ def image_data_response(image):
         secondary_colourspace=args.get('secondaryColourspace',
                                        SECONDARY_COLOURSPACE),
         image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
-        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_DECODING_CCTF),
+        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_CCTF_DECODING),
         out_of_primary_colourspace_gamut=_bool_to_bool(
             args.get('outOfPrimaryColourspaceGamut', False)),
         out_of_secondary_colourspace_gamut=_bool_to_bool(
@@ -300,7 +300,7 @@ def RGB_image_scatter_visual_response(image):
         secondary_colourspace=args.get('secondaryColourspace',
                                        SECONDARY_COLOURSPACE),
         image_colourspace=args.get('imageColourspace', IMAGE_COLOURSPACE),
-        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_DECODING_CCTF),
+        image_decoding_cctf=args.get('imageDecodingCctf', IMAGE_CCTF_DECODING),
         colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL),
         out_of_primary_colourspace_gamut=_bool_to_bool(
             args.get('outOfPrimaryColourspaceGamut', False)),
@@ -405,7 +405,7 @@ def index():
         primary_colourspace=PRIMARY_COLOURSPACE,
         secondary_colourspace=SECONDARY_COLOURSPACE,
         image_colourspace=IMAGE_COLOURSPACE,
-        image_decoding_cctf=IMAGE_DECODING_CCTF,
+        image_decoding_cctf=IMAGE_CCTF_DECODING,
         colourspace_model=COLOURSPACE_MODEL)
 
 
