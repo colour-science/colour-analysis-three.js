@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "colour-analysis"
-version = "0.1.7"
+version = "0.1.8"
 description = "Image analysis tools based on Colour and Three.js"
 license = "BSD-3-Clause"
 authors = [ "Colour Developers <colour-developers@colour-science.org>" ]
