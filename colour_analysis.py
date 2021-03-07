@@ -17,12 +17,12 @@ from colour import (CCS_ILLUMINANTS, CCTF_DECODINGS, Lab_to_XYZ, LCHab_to_Lab,
                     RGB_COLOURSPACES, RGB_to_RGB, RGB_to_XYZ, XYZ_to_RGB,
                     XYZ_to_JzAzBz, XYZ_to_OSA_UCS, convert,
                     is_within_pointer_gamut, read_image)
+from colour.algebra import normalise_maximum
 from colour.geometry import primitive_cube
 from colour.models import (CCS_ILLUMINANT_POINTER_GAMUT,
                            DATA_POINTER_GAMUT_VOLUME, linear_function)
 from colour.plotting import filter_cmfs, filter_RGB_colourspaces
-from colour.utilities import (as_float_array, first_item, normalise_maximum,
-                              tsplit, tstack)
+from colour.utilities import (as_float_array, first_item, tsplit, tstack)
 from colour.volume import XYZ_outer_surface
 
 __author__ = 'Colour Developers'
