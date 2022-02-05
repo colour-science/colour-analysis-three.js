@@ -258,6 +258,7 @@ def XYZ_to_colourspace_model(XYZ, illuminant, model, **kwargs):
         verbose={'mode': 'Short'},
         **kwargs)
 
+    # TODO: ICtCp?
     if model == 'JzAzBz':
         ijk /= XYZ_to_JzAzBz([1, 1, 1])[0]
     elif model == 'OSA UCS':
