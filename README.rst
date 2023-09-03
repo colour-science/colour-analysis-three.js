@@ -7,7 +7,7 @@ Introduction
 ------------
 
 Image analysis tools based on `Colour <https://github.com/colour-science/colour>`__
-and `Three.js <https://github.com/mrdoob/three.js/>`__.
+and `Three.js <https://github.com/mrdoob/three.js>`__.
 
 Installation
 ------------
@@ -44,7 +44,7 @@ Code of Conduct
 ---------------
 
 The *Code of Conduct*, adapted from the `Contributor Covenant 1.4 <https://www.contributor-covenant.org/version/1/4/code-of-conduct.html>`__,
-is available on the `Code of Conduct <https://www.colour-science.org/code-of-conduct/>`__ page.
+is available on the `Code of Conduct <https://www.colour-science.org/code-of-conduct>`__ page.
 
 About
 -----
