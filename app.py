@@ -242,8 +242,8 @@ def image_data_response(image):
             args.get('outOfPrimaryColourspaceGamut', False)),
         out_of_secondary_colourspace_gamut=_bool_to_bool(
             args.get('outOfSecondaryColourspaceGamut', False)),
-        out_of_pointer_gamut=_bool_to_bool(
-            args.get('outOfPointerGamut', False)),
+        out_of_pointer_gamut=_bool_to_bool(args.get('outOfPointerGamut',
+                                                    False)),
         saturate=_bool_to_bool(args.get('saturate', False)))
 
     response = Response(json_data, status=200, mimetype='application/json')
@@ -306,8 +306,8 @@ def RGB_image_scatter_visual_response(image):
             args.get('outOfPrimaryColourspaceGamut', False)),
         out_of_secondary_colourspace_gamut=_bool_to_bool(
             args.get('outOfSecondaryColourspaceGamut', False)),
-        out_of_pointer_gamut=_bool_to_bool(
-            args.get('outOfPointerGamut', False)),
+        out_of_pointer_gamut=_bool_to_bool(args.get('outOfPointerGamut',
+                                                    False)),
         sub_sampling=int(args.get('subSampling', 25)),
         saturate=_bool_to_bool(args.get('saturate', False)),
     )
@@ -355,8 +355,8 @@ def pointer_gamut_visual_response():
     """
 
     args = request.args
-    json_data = pointer_gamut_visual(
-        colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL), )
+    json_data = pointer_gamut_visual(colourspace_model=args.get(
+        'colourspaceModel', COLOURSPACE_MODEL), )
 
     response = Response(json_data, status=200, mimetype='application/json')
     response.headers['X-Content-Length'] = len(json_data)
@@ -377,8 +377,8 @@ def visible_spectrum_visual_response():
     """
 
     args = request.args
-    json_data = visible_spectrum_visual(
-        colourspace_model=args.get('colourspaceModel', COLOURSPACE_MODEL), )
+    json_data = visible_spectrum_visual(colourspace_model=args.get(
+        'colourspaceModel', COLOURSPACE_MODEL), )
 
     response = Response(json_data, status=200, mimetype='application/json')
     response.headers['X-Content-Length'] = len(json_data)
@@ -397,16 +397,16 @@ def index():
         Index response.
     """
 
-    return render_template(
-        'index.html',
-        colour_analysis_js=os.environ.get('COLOUR_ANALYSIS_JS',
-                                          '/static/js/colour-analysis.js'),
-        image=sorted(os.listdir(IMAGES_DIRECTORY))[0],
-        primary_colourspace=PRIMARY_COLOURSPACE,
-        secondary_colourspace=SECONDARY_COLOURSPACE,
-        image_colourspace=IMAGE_COLOURSPACE,
-        image_decoding_cctf=IMAGE_CCTF_DECODING,
-        colourspace_model=COLOURSPACE_MODEL)
+    return render_template('index.html',
+                           colour_analysis_js=os.environ.get(
+                               'COLOUR_ANALYSIS_JS',
+                               '/static/js/colour-analysis.js'),
+                           image=sorted(os.listdir(IMAGES_DIRECTORY))[0],
+                           primary_colourspace=PRIMARY_COLOURSPACE,
+                           secondary_colourspace=SECONDARY_COLOURSPACE,
+                           image_colourspace=IMAGE_COLOURSPACE,
+                           image_decoding_cctf=IMAGE_CCTF_DECODING,
+                           colourspace_model=COLOURSPACE_MODEL)
 
 
 @APP.after_request
