@@ -167,8 +167,8 @@ COLOURSPACE_MODEL : unicode
     'hdr-CIELAB', 'hdr-IPT'}**
 """
 
-DATA_POINTER_GAMUT = Lab_to_XYZ(
-    LCHab_to_Lab(DATA_POINTER_GAMUT_VOLUME), CCS_ILLUMINANT_POINTER_GAMUT)
+DATA_POINTER_GAMUT = Lab_to_XYZ(LCHab_to_Lab(DATA_POINTER_GAMUT_VOLUME),
+                                CCS_ILLUMINANT_POINTER_GAMUT)
 """
 Pointer's Gamut data converted to *CIE XYZ* tristimulus values.
 
@@ -250,13 +250,12 @@ def XYZ_to_colourspace_model(XYZ, illuminant, model, **kwargs):
         Colourspace model values.
     """
 
-    ijk = convert(
-        XYZ,
-        'CIE XYZ',
-        model,
-        illuminant=illuminant,
-        verbose={'mode': 'Short'},
-        **kwargs)
+    ijk = convert(XYZ,
+                  'CIE XYZ',
+                  model,
+                  illuminant=illuminant,
+                  verbose={'mode': 'Short'},
+                  **kwargs)
 
     if model == 'JzAzBz':
         ijk /= XYZ_to_JzAzBz([1, 1, 1])[0]
@@ -447,9 +446,10 @@ def conform_primitive_dtype(primitive):
     vertices, faces, outline = primitive
 
     return (
-        vertices.astype(
-            [('position', np.float32, (3, )), ('uv', np.float32, (2, )),
-             ('normal', np.float32, (3, )), ('colour', np.float32, (4, ))]),
+        vertices.astype([('position', np.float32, (3, )),
+                         ('uv', np.float32, (2, )),
+                         ('normal', np.float32, (3, )),
+                         ('colour', np.float32, (4, ))]),
         faces.astype(np.uint32),
         outline.astype(np.uint32),
     )
@@ -582,14 +582,13 @@ def RGB_colourspace_volume_visual(colourspace=PRIMARY_COLOURSPACE,
         filter_RGB_colourspaces(re.escape(colourspace)).values())
 
     cube = conform_primitive_dtype(
-        primitive_cube(
-            width_segments=segments,
-            height_segments=segments,
-            depth_segments=segments))
+        primitive_cube(width_segments=segments,
+                       height_segments=segments,
+                       depth_segments=segments))
 
     vertices = cube[0]['position'] + 0.5
-    faces = colourspace_model_faces_reorder(
-        np.reshape(cube[1], (-1, 1)), colourspace_model)
+    faces = colourspace_model_faces_reorder(np.reshape(cube[1], (-1, 1)),
+                                            colourspace_model)
     RGB = cube[0]['colour']
 
     XYZ = RGB_to_XYZ(
@@ -762,14 +761,13 @@ def spectral_locus_visual(colourspace=PRIMARY_COLOURSPACE,
             colourspace_model,
         ), colourspace_model)
 
-    RGB = normalise_maximum(
-        XYZ_to_RGB(
-            XYZ,
-            colourspace.whitepoint,
-            colourspace.whitepoint,
-            colourspace.matrix_XYZ_to_RGB,
-        ),
-        axis=-1)
+    RGB = normalise_maximum(XYZ_to_RGB(
+        XYZ,
+        colourspace.whitepoint,
+        colourspace.whitepoint,
+        colourspace.matrix_XYZ_to_RGB,
+    ),
+                            axis=-1)
 
     return buffer_geometry(position=vertices, color=RGB)
 
