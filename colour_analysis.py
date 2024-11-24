@@ -653,7 +653,7 @@ def RGB_image_scatter_visual(path,
     sub_sampling : int, optional
         Consider every ``sub_sampling`` pixels of the image to generate the
         visual geometry. Using a low number will yield a large quantity of
-        points, e.g. *1* yields *2073600* points for a *1080p* image.
+        points, e.g., *1* yields *2073600* points for a *1080p* image.
     saturate : bool, optional
         Whether to clip the image in domain [0, 1].
 

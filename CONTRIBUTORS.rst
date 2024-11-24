@@ -4,7 +4,7 @@ Contributors
 Colour - Analysis
 -----------------
 
--   **Thomas Mansencal**, *Technology Supervisor @ Wētā FX*
+-   **Thomas Mansencal**, *Principal Pipeline Programmer @ Epic Games*
 
     Project coordination, writing.
     

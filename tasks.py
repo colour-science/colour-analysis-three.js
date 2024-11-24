@@ -41,7 +41,7 @@ def clean(ctx, bytecode=False):
     Parameters
     ----------
     bytecode : bool, optional
-        Whether to clean the bytecode files, e.g. *.pyc* files.
+        Whether to clean the bytecode files, e.g., *.pyc* files.
 
     Returns
     -------
